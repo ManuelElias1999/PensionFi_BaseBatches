@@ -1,5 +1,3 @@
-import { Button } from "./ui/button"
-import { X } from 'lucide-react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter } from '@fortawesome/free-brands-svg-icons';
 
@@ -7,61 +5,33 @@ interface SidebarProps {
   language: 'es' | 'en'
   setLanguage: (lang: 'es' | 'en') => void
   translations: {
-    learn: string
     invest: string
     retire: string
     contribute: string
     myPlans: string
   }
   activeSection: string
-  onSectionClick: (section: 'home' | 'learn' | 'swap' | 'retire' | 'contribute' | 'myPlans') => void
+  onSectionClick: (section: 'home' | 'swap' | 'retire' | 'contribute' | 'myPlans') => void
 }
 
-export default function Sidebar({ language, setLanguage, translations, activeSection, onSectionClick }: SidebarProps) {
+export default function Sidebar({ translations, activeSection, onSectionClick }: SidebarProps) {
   return (
-    <div className="w-64 bg-white/90 backdrop-blur-sm border-r-2 border-gray-300 min-h-screen p-6 shadow-lg">
-      {/* Language Toggle */}
-      <div className="mb-8">
-        <div className="flex bg-gray-200 rounded-lg p-1">
-          <button
-            onClick={() => setLanguage('es')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              language === 'es' 
-                ? 'bg-white text-gray-900 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            ES
-          </button>
-          <button
-            onClick={() => setLanguage('en')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              language === 'en' 
-                ? 'bg-white text-gray-900 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            ENG
-          </button>
-        </div>
-      </div>
-
+    <div className="w-72 bg-gradient-to-b from-[#242424] to-[#1a1a1a] rounded-2xl shadow-xl p-8 flex flex-col">
       {/* Navigation Menu */}
-      <nav className="space-y-4 mb-8">
+      <nav className="space-y-2 flex-1">
         {[
-          { key: 'learn', label: translations.learn },
-          { key: 'swap', label: translations.invest },
           { key: 'retire', label: translations.retire },
           { key: 'myPlans', label: translations.myPlans },
+          { key: 'swap', label: translations.invest },
           { key: 'contribute', label: translations.contribute }
         ].map((item) => (
           <button
             key={item.key}
             onClick={() => onSectionClick(item.key as any)}
-            className={`w-full text-left py-3 px-4 text-lg font-medium rounded-lg transition-colors ${
+            className={`w-full text-left py-3 px-4 rounded-lg text-base font-medium transition-all duration-200 ${
               activeSection === item.key 
-                ? 'bg-blue-100 text-blue-900 border-l-4 border-blue-500' 
-                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+                ? 'text-[#27F5A9] bg-[#27F5A9]/10' 
+                : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]'
             }`}
           >
             {item.label}
@@ -69,16 +39,19 @@ export default function Sidebar({ language, setLanguage, translations, activeSec
         ))}
       </nav>
 
+      {/* Decorative Element */}
+      <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
+
       {/* X (Twitter) Link */}
-      <div className="mt-auto">
+      <div className="flex items-center justify-between">
+        <span className="text-gray-500 text-sm">Follow us</span>
         <a
           href="https://x.com/mejubilo_com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center w-12 h-12 bg-black text-white rounded-full hover:bg-gray-800 transition-colors"
+          className="flex items-center justify-center w-12 h-12 bg-[#27F5A9] text-[#1a1a1a] rounded-xl hover:bg-[#20E096] transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-[#27F5A9]/30"
         >
-          <FontAwesomeIcon icon={faXTwitter} />
-          {/* <X size={24} /> */}
+          <FontAwesomeIcon icon={faXTwitter} className="text-lg" />
         </a>
       </div>
     </div>

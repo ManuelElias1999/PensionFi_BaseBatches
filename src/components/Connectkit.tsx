@@ -47,7 +47,7 @@ export const ConnectWalletButton: React.FC = () => {
 				return (
 					<button
 						onClick={show}
-						className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2"
+						className="bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a] px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-[#27F5A9]/30 transition-all flex items-center gap-2"
 					>
 						{isConnected
 							? `Connected: ${

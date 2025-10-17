@@ -1,0 +1,681 @@
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><style type="text/css">:root,
+:host {
+    --fa-font-solid: normal 900 1em/1 "Font Awesome 7 Free";
+    --fa-font-regular: normal 400 1em/1 "Font Awesome 7 Free";
+    --fa-font-light: normal 300 1em/1 "Font Awesome 7 Pro";
+    --fa-font-thin: normal 100 1em/1 "Font Awesome 7 Pro";
+    --fa-font-duotone: normal 900 1em/1 "Font Awesome 7 Duotone";
+    --fa-font-duotone-regular: normal 400 1em/1 "Font Awesome 7 Duotone";
+    --fa-font-duotone-light: normal 300 1em/1 "Font Awesome 7 Duotone";
+    --fa-font-duotone-thin: normal 100 1em/1 "Font Awesome 7 Duotone";
+    --fa-font-brands: normal 400 1em/1 "Font Awesome 7 Brands";
+    --fa-font-sharp-solid: normal 900 1em/1 "Font Awesome 7 Sharp";
+    --fa-font-sharp-regular: normal 400 1em/1 "Font Awesome 7 Sharp";
+    --fa-font-sharp-light: normal 300 1em/1 "Font Awesome 7 Sharp";
+    --fa-font-sharp-thin: normal 100 1em/1 "Font Awesome 7 Sharp";
+    --fa-font-sharp-duotone-solid: normal 900 1em/1 "Font Awesome 7 Sharp Duotone";
+    --fa-font-sharp-duotone-regular: normal 400 1em/1 "Font Awesome 7 Sharp Duotone";
+    --fa-font-sharp-duotone-light: normal 300 1em/1 "Font Awesome 7 Sharp Duotone";
+    --fa-font-sharp-duotone-thin: normal 100 1em/1 "Font Awesome 7 Sharp Duotone";
+    --fa-font-slab-regular: normal 400 1em/1 "Font Awesome 7 Slab";
+    --fa-font-slab-press-regular: normal 400 1em/1 "Font Awesome 7 Slab Press";
+    --fa-font-whiteboard-semibold: normal 600 1em/1 "Font Awesome 7 Whiteboard";
+    --fa-font-thumbprint-light: normal 300 1em/1 "Font Awesome 7 Thumbprint";
+    --fa-font-notdog-solid: normal 900 1em/1 "Font Awesome 7 Notdog";
+    --fa-font-notdog-duo-solid: normal 900 1em/1 "Font Awesome 7 Notdog Duo";
+    --fa-font-etch-solid: normal 900 1em/1 "Font Awesome 7 Etch";
+    --fa-font-jelly-regular: normal 400 1em/1 "Font Awesome 7 Jelly";
+    --fa-font-jelly-fill-regular: normal 400 1em/1 "Font Awesome 7 Jelly Fill";
+    --fa-font-jelly-duo-regular: normal 400 1em/1 "Font Awesome 7 Jelly Duo";
+    --fa-font-chisel-regular: normal 400 1em/1 "Font Awesome 7 Chisel";
+    --fa-font-utility-semibold: normal 600 1em/1 "Font Awesome 7 Utility";
+    --fa-font-utility-duo-semibold: normal 600 1em/1 "Font Awesome 7 Utility Duo";
+    --fa-font-utility-fill-semibold: normal 600 1em/1 "Font Awesome 7 Utility Fill";
+}
+
+.svg-inline--fa {
+    box-sizing: content-box;
+    display: var(--fa-display, inline-block);
+    height: 1em;
+    overflow: visible;
+    vertical-align: -0.125em;
+    width: var(--fa-width, 1.25em);
+}
+
+.svg-inline--fa.fa-2xs {
+    vertical-align: 0.1em;
+}
+
+.svg-inline--fa.fa-xs {
+    vertical-align: 0em;
+}
+
+.svg-inline--fa.fa-sm {
+    vertical-align: -0.0714285714em;
+}
+
+.svg-inline--fa.fa-lg {
+    vertical-align: -0.2em;
+}
+
+.svg-inline--fa.fa-xl {
+    vertical-align: -0.25em;
+}
+
+.svg-inline--fa.fa-2xl {
+    vertical-align: -0.3125em;
+}
+
+.svg-inline--fa.fa-pull-left,
+.svg-inline--fa .fa-pull-start {
+    float: inline-start;
+    margin-inline-end: var(--fa-pull-margin, 0.3em);
+}
+
+.svg-inline--fa.fa-pull-right,
+.svg-inline--fa .fa-pull-end {
+    float: inline-end;
+    margin-inline-start: var(--fa-pull-margin, 0.3em);
+}
+
+.svg-inline--fa.fa-li {
+    width: var(--fa-li-width, 2em);
+    inset-inline-start: calc(-1 * var(--fa-li-width, 2em));
+    inset-block-start: 0.25em;
+    /* syncing vertical alignment with Web Font rendering */
+}
+
+.fa-layers-counter,
+.fa-layers-text {
+    display: inline-block;
+    position: absolute;
+    text-align: center;
+}
+
+.fa-layers {
+    display: inline-block;
+    height: 1em;
+    position: relative;
+    text-align: center;
+    vertical-align: -0.125em;
+    width: var(--fa-width, 1.25em);
+}
+
+.fa-layers .svg-inline--fa {
+    inset: 0;
+    margin: auto;
+    position: absolute;
+    transform-origin: center center;
+}
+
+.fa-layers-text {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+}
+
+.fa-layers-counter {
+    background-color: var(--fa-counter-background-color, #ff253a);
+    border-radius: var(--fa-counter-border-radius, 1em);
+    box-sizing: border-box;
+    color: var(--fa-inverse, #fff);
+    line-height: var(--fa-counter-line-height, 1);
+    max-width: var(--fa-counter-max-width, 5em);
+    min-width: var(--fa-counter-min-width, 1.5em);
+    overflow: hidden;
+    padding: var(--fa-counter-padding, 0.25em 0.5em);
+    right: var(--fa-right, 0);
+    text-overflow: ellipsis;
+    top: var(--fa-top, 0);
+    transform: scale(var(--fa-counter-scale, 0.25));
+    transform-origin: top right;
+}
+
+.fa-layers-bottom-right {
+    bottom: var(--fa-bottom, 0);
+    right: var(--fa-right, 0);
+    top: auto;
+    transform: scale(var(--fa-layers-scale, 0.25));
+    transform-origin: bottom right;
+}
+
+.fa-layers-bottom-left {
+    bottom: var(--fa-bottom, 0);
+    left: var(--fa-left, 0);
+    right: auto;
+    top: auto;
+    transform: scale(var(--fa-layers-scale, 0.25));
+    transform-origin: bottom left;
+}
+
+.fa-layers-top-right {
+    top: var(--fa-top, 0);
+    right: var(--fa-right, 0);
+    transform: scale(var(--fa-layers-scale, 0.25));
+    transform-origin: top right;
+}
+
+.fa-layers-top-left {
+    left: var(--fa-left, 0);
+    right: auto;
+    top: var(--fa-top, 0);
+    transform: scale(var(--fa-layers-scale, 0.25));
+    transform-origin: top left;
+}
+
+.fa-1x {
+    font-size: 1em;
+}
+
+.fa-2x {
+    font-size: 2em;
+}
+
+.fa-3x {
+    font-size: 3em;
+}
+
+.fa-4x {
+    font-size: 4em;
+}
+
+.fa-5x {
+    font-size: 5em;
+}
+
+.fa-6x {
+    font-size: 6em;
+}
+
+.fa-7x {
+    font-size: 7em;
+}
+
+.fa-8x {
+    font-size: 8em;
+}
+
+.fa-9x {
+    font-size: 9em;
+}
+
+.fa-10x {
+    font-size: 10em;
+}
+
+.fa-2xs {
+    font-size: calc(10 / 16 * 1em);
+    /* converts a 10px size into an em-based value that's relative to the scale's 16px base */
+    line-height: calc(1 / 10 * 1em);
+    /* sets the line-height of the icon back to that of it's parent */
+    vertical-align: calc((6 / 10 - 0.375) * 1em);
+    /* vertically centers the icon taking into account the surrounding text's descender */
+}
+
+.fa-xs {
+    font-size: calc(12 / 16 * 1em);
+    /* converts a 12px size into an em-based value that's relative to the scale's 16px base */
+    line-height: calc(1 / 12 * 1em);
+    /* sets the line-height of the icon back to that of it's parent */
+    vertical-align: calc((6 / 12 - 0.375) * 1em);
+    /* vertically centers the icon taking into account the surrounding text's descender */
+}
+
+.fa-sm {
+    font-size: calc(14 / 16 * 1em);
+    /* converts a 14px size into an em-based value that's relative to the scale's 16px base */
+    line-height: calc(1 / 14 * 1em);
+    /* sets the line-height of the icon back to that of it's parent */
+    vertical-align: calc((6 / 14 - 0.375) * 1em);
+    /* vertically centers the icon taking into account the surrounding text's descender */
+}
+
+.fa-lg {
+    font-size: calc(20 / 16 * 1em);
+    /* converts a 20px size into an em-based value that's relative to the scale's 16px base */
+    line-height: calc(1 / 20 * 1em);
+    /* sets the line-height of the icon back to that of it's parent */
+    vertical-align: calc((6 / 20 - 0.375) * 1em);
+    /* vertically centers the icon taking into account the surrounding text's descender */
+}
+
+.fa-xl {
+    font-size: calc(24 / 16 * 1em);
+    /* converts a 24px size into an em-based value that's relative to the scale's 16px base */
+    line-height: calc(1 / 24 * 1em);
+    /* sets the line-height of the icon back to that of it's parent */
+    vertical-align: calc((6 / 24 - 0.375) * 1em);
+    /* vertically centers the icon taking into account the surrounding text's descender */
+}
+
+.fa-2xl {
+    font-size: calc(32 / 16 * 1em);
+    /* converts a 32px size into an em-based value that's relative to the scale's 16px base */
+    line-height: calc(1 / 32 * 1em);
+    /* sets the line-height of the icon back to that of it's parent */
+    vertical-align: calc((6 / 32 - 0.375) * 1em);
+    /* vertically centers the icon taking into account the surrounding text's descender */
+}
+
+.fa-width-auto {
+    --fa-width: auto;
+}
+
+.fa-fw,
+.fa-width-fixed {
+    --fa-width: 1.25em;
+}
+
+.fa-ul {
+    list-style-type: none;
+    margin-inline-start: var(--fa-li-margin, 2.5em);
+    padding-inline-start: 0;
+}
+
+.fa-ul>li {
+    position: relative;
+}
+
+.fa-li {
+    inset-inline-start: calc(-1 * var(--fa-li-width, 2em));
+    position: absolute;
+    text-align: center;
+    width: var(--fa-li-width, 2em);
+    line-height: inherit;
+}
+
+/* Heads Up: Bordered Icons will not be supported in the future!
+  - This feature will be deprecated in the next major release of Font Awesome (v8)!
+  - You may continue to use it in this version *v7), but it will not be supported in Font Awesome v8.
+*/
+/* Notes:
+* --@{v.$css-prefix}-border-width = 1/16 by default (to render as ~1px based on a 16px default font-size)
+* --@{v.$css-prefix}-border-padding =
+  ** 3/16 for vertical padding (to give ~2px of vertical whitespace around an icon considering it's vertical alignment)
+  ** 4/16 for horizontal padding (to give ~4px of horizontal whitespace around an icon)
+*/
+.fa-border {
+    border-color: var(--fa-border-color, #eee);
+    border-radius: var(--fa-border-radius, 0.1em);
+    border-style: var(--fa-border-style, solid);
+    border-width: var(--fa-border-width, 0.0625em);
+    box-sizing: var(--fa-border-box-sizing, content-box);
+    padding: var(--fa-border-padding, 0.1875em 0.25em);
+}
+
+.fa-pull-left,
+.fa-pull-start {
+    float: inline-start;
+    margin-inline-end: var(--fa-pull-margin, 0.3em);
+}
+
+.fa-pull-right,
+.fa-pull-end {
+    float: inline-end;
+    margin-inline-start: var(--fa-pull-margin, 0.3em);
+}
+
+.fa-beat {
+    animation-name: fa-beat;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, ease-in-out);
+}
+
+.fa-bounce {
+    animation-name: fa-bounce;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.28, 0.84, 0.42, 1));
+}
+
+.fa-fade {
+    animation-name: fa-fade;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));
+}
+
+.fa-beat-fade {
+    animation-name: fa-beat-fade;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, cubic-bezier(0.4, 0, 0.6, 1));
+}
+
+.fa-flip {
+    animation-name: fa-flip;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, ease-in-out);
+}
+
+.fa-shake {
+    animation-name: fa-shake;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, linear);
+}
+
+.fa-spin {
+    animation-name: fa-spin;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 2s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, linear);
+}
+
+.fa-spin-reverse {
+    --fa-animation-direction: reverse;
+}
+
+.fa-pulse,
+.fa-spin-pulse {
+    animation-name: fa-spin;
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, steps(8));
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .fa-beat,
+    .fa-bounce,
+    .fa-fade,
+    .fa-beat-fade,
+    .fa-flip,
+    .fa-pulse,
+    .fa-shake,
+    .fa-spin,
+    .fa-spin-pulse {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+@keyframes fa-beat {
+
+    0%,
+    90% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(var(--fa-beat-scale, 1.25));
+    }
+}
+
+@keyframes fa-bounce {
+    0% {
+        transform: scale(1, 1) translateY(0);
+    }
+
+    10% {
+        transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, 0.9)) translateY(0);
+    }
+
+    30% {
+        transform: scale(var(--fa-bounce-jump-scale-x, 0.9), var(--fa-bounce-jump-scale-y, 1.1)) translateY(var(--fa-bounce-height, -0.5em));
+    }
+
+    50% {
+        transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, 0.95)) translateY(0);
+    }
+
+    57% {
+        transform: scale(1, 1) translateY(var(--fa-bounce-rebound, -0.125em));
+    }
+
+    64% {
+        transform: scale(1, 1) translateY(0);
+    }
+
+    100% {
+        transform: scale(1, 1) translateY(0);
+    }
+}
+
+@keyframes fa-fade {
+    50% {
+        opacity: var(--fa-fade-opacity, 0.4);
+    }
+}
+
+@keyframes fa-beat-fade {
+
+    0%,
+    100% {
+        opacity: var(--fa-beat-fade-opacity, 0.4);
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(var(--fa-beat-fade-scale, 1.125));
+    }
+}
+
+@keyframes fa-flip {
+    50% {
+        transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg));
+    }
+}
+
+@keyframes fa-shake {
+    0% {
+        transform: rotate(-15deg);
+    }
+
+    4% {
+        transform: rotate(15deg);
+    }
+
+    8%,
+    24% {
+        transform: rotate(-18deg);
+    }
+
+    12%,
+    28% {
+        transform: rotate(18deg);
+    }
+
+    16% {
+        transform: rotate(-22deg);
+    }
+
+    20% {
+        transform: rotate(22deg);
+    }
+
+    32% {
+        transform: rotate(-12deg);
+    }
+
+    36% {
+        transform: rotate(12deg);
+    }
+
+    40%,
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.fa-rotate-90 {
+    transform: rotate(90deg);
+}
+
+.fa-rotate-180 {
+    transform: rotate(180deg);
+}
+
+.fa-rotate-270 {
+    transform: rotate(270deg);
+}
+
+.fa-flip-horizontal {
+    transform: scale(-1, 1);
+}
+
+.fa-flip-vertical {
+    transform: scale(1, -1);
+}
+
+.fa-flip-both,
+.fa-flip-horizontal.fa-flip-vertical {
+    transform: scale(-1, -1);
+}
+
+.fa-rotate-by {
+    transform: rotate(var(--fa-rotate-angle, 0));
+}
+
+.svg-inline--fa .fa-primary {
+    fill: var(--fa-primary-color, currentColor);
+    opacity: var(--fa-primary-opacity, 1);
+}
+
+.svg-inline--fa .fa-secondary {
+    fill: var(--fa-secondary-color, currentColor);
+    opacity: var(--fa-secondary-opacity, 0.4);
+}
+
+.svg-inline--fa.fa-swap-opacity .fa-primary {
+    opacity: var(--fa-secondary-opacity, 0.4);
+}
+
+.svg-inline--fa.fa-swap-opacity .fa-secondary {
+    opacity: var(--fa-primary-opacity, 1);
+}
+
+.svg-inline--fa mask .fa-primary,
+.svg-inline--fa mask .fa-secondary {
+    fill: black;
+}
+
+.svg-inline--fa.fa-inverse {
+    fill: var(--fa-inverse, #fff);
+}
+
+.fa-stack {
+    display: inline-block;
+    height: 2em;
+    line-height: 2em;
+    position: relative;
+    vertical-align: middle;
+    width: 2.5em;
+}
+
+.fa-inverse {
+    color: var(--fa-inverse, #fff);
+}
+
+.svg-inline--fa.fa-stack-1x {
+    --fa-width: 1.25em;
+    height: 1em;
+    width: var(--fa-width);
+}
+
+.svg-inline--fa.fa-stack-2x {
+    --fa-width: 2.5em;
+    height: 2em;
+    width: var(--fa-width);
+}
+
+.fa-stack-1x,
+.fa-stack-2x {
+    inset: 0;
+    margin: auto;
+    position: absolute;
+    z-index: var(--fa-stack-z-index, auto);
+}
+
+</style><link rel="preload" href="/_next/static/media/028c0d39d2e8f589-s.p.woff2" as="font" crossorigin="" type="font/woff2"><link rel="preload" href="/_next/static/media/5b01f339abf2f1a5.p.woff2" as="font" crossorigin="" type="font/woff2"><link rel="stylesheet" href="/_next/static/css/09cb3273c6dbe1af.css?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA" data-precedence="next"><link rel="preload" as="script" fetchpriority="low" href="/_next/static/chunks/webpack-a28c9a28917b3adf.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA"><script src="/_next/static/chunks/4bd1b696-017c87ba5c7d95a7.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA" async=""></script><script src="/_next/static/chunks/1684-966640d363313ac8.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA" async=""></script><script src="/_next/static/chunks/main-app-eb0eb2037473c88f.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA" async=""></script><meta name="next-size-adjust" content=""><title>Capitalfrens</title><meta name="description" content="Pension and investment platform"><meta name="generator" content="v0.app"><style>html {
+    font-family: 'GeistSans', 'GeistSans Fallback';
+    --font-sans: __variable_fb8f2c;
+    --font-mono: __variable_f910ec;
+}
+
+</style><script src="/_next/static/chunks/polyfills-42372ed130431b0a.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA" nomodule=""></script><style type="text/css" id="operaUserStyle"></style><script src="/_vercel/insights/script.js" defer="" data-sdkn="@vercel/analytics/next" data-sdkv="1.5.0" data-disable-auto-track="1"></script></head><body>< !--$--><div class="min-h-screen bg-white flex"><div class="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm border-b border-gray-200"><div class="flex items-center justify-between px-6 py-4"><div class="flex items-center space-x-2"><img alt="Pension Fi" loading="lazy" width="120" height="32" decoding="async" data-nimg="1" class="h-8 w-auto" style="color:transparent" src="/pension-fi-logo.png"></div><div class="flex items-center space-x-4"><button class="bg-[#27F5A9] hover:bg-[#20e094] text-white px-6 py-3 rounded-lg font-medium hover:shadow-lg transition-all flex items-center gap-2">Connect Wallet</button></div></div></div><div class="flex flex-1 pt-20"><div class="w-64 bg-white/90 backdrop-blur-sm border-r-2 border-gray-300 min-h-screen p-6 shadow-lg"><nav class="space-y-4 mb-8"><button class="w-full text-left py-3 px-4 text-lg font-medium rounded-lg transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-100">Pension Manifiesto</button><button class="w-full text-left py-3 px-4 text-lg font-medium rounded-lg transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-100">Retire</button><button class="w-full text-left py-3 px-4 text-lg font-medium rounded-lg transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-100">My Plans</button><button class="w-full text-left py-3 px-4 text-lg font-medium rounded-lg transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-100">Invest (soon)</button><button class="w-full text-left py-3 px-4 text-lg font-medium rounded-lg transition-colors text-gray-700 hover:text-gray-900 hover:bg-gray-100">Contribute</button></nav><div class="mt-auto"><a href="https://x.com/pensionfi" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center w-12 h-12 bg-[#27F5A9] text-black rounded-full hover:bg-[#20E096] transition-colors"><svg data-prefix="fab" data-icon="x-twitter" class="svg-inline--fa fa-x-twitter" role="img" viewBox="0 0 448 512" aria-hidden="true"><path fill="currentColor" d="M357.2 48L427.8 48 273.6 224.2 455 464 313 464 201.7 318.6 74.5 464 3.8 464 168.7 275.5-5.2 48 140.4 48 240.9 180.9 357.2 48zM332.4 421.8l39.1 0-252.4-333.8-42 0 255.3 333.8z"></path></svg></a></div></div><div class="flex-1 relative overflow-hidden"><div class="absolute inset-0 bg-white"></div><div class="relative z-10 flex flex-col items-center justify-center min-h-full p-8 text-center"><h1 class="text-6xl font-bold text-gray-800 mb-4 max-w-4xl">Pensions made simple</h1><p class="text-xl text-gray-700 mb-12 max-w-2xl">A descentralized,
+simple and non-expropiable pension system</p><button class="bg-[#27F5A9] hover:bg-[#20e094] text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 hover:shadow-lg">Retire today</button></div></div></div></div>< !--/$--><div><div id="v0-built-with-button-46ac314a-0656-4ef6-9ce1-78378a8e1a42" style="
+ border: 1px solid hsl(0deg 0% 100% / 12%);
+position: fixed;
+bottom: 24px;
+right: 24px;
+z-index: 1000;
+background: #121212;
+color: white;
+padding: 8px 12px;
+border-radius: 8px;
+font-weight: 400;
+font-size: 14px;
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+letter-spacing: 0.02em;
+transition: all 0.2s;
+display: flex;
+align-items: center;
+gap: 4px;
+font-family: -apple-system,
+BlinkMacSystemFont,
+'Segoe UI',
+Roboto,
+sans-serif;
+">
+ <a href="https://v0.app/chat/api/open/built-with-v0/b_XngPK3fggyj" target="_blank" rel="noopener" style="
+ color: inherit;
+text-decoration: none;
+display: flex;
+align-items: center;
+gap: 4px;
+">
+ Built with <svg fill="currentColor" viewBox="0 0 147 70" xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px;"><path d="M56 50.2031V14H70V60.1562C70 65.5928 65.5928 70 60.1562 70C57.5605 70 54.9982 68.9992 53.1562 67.1573L0 14H19.7969L56 50.2031Z"></path><path d="M147 56H133V23.9531L100.953 56H133V70H96.6875C85.8144 70 77 61.1856 77 50.3125V14H91V46.1562L123.156 14H91V0H127.312C138.186 0 147 8.81439 147 19.6875V56Z"></path></svg></a><button onclick="document.getElementById('v0-built-with-button-46ac314a-0656-4ef6-9ce1-78378a8e1a42').style.display='none'" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.7'" style="
+ background: none;
+border: none;
+color: white;
+cursor: pointer;
+padding: 2px;
+margin-left: 4px;
+border-radius: 2px;
+display: flex;
+align-items: center;
+opacity: 0.7;
+transition: opacity 0.2s;
+transform: translateZ(0);
+" aria-label=" Close">
+ <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></button><span style="
+ position: absolute;
+width: 1px;
+height: 1px;
+padding: 0;
+margin: -1px;
+overflow: hidden;
+clip: rect(0, 0, 0, 0);
+white-space: nowrap;
+">
+ v0 </span></div></div><script src="/_next/static/chunks/webpack-a28c9a28917b3adf.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA" async=""></script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1, "1:\"$Sreact.fragment\"\n2:\"$Sreact.suspense\"\n3:I[87555,[],\"\"]\n4:I[31295,[],\"\"]\n5:I[79742,[\"7177\",\"static/chunks/app/layout-1630c1a236e50e37.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA\"],\"Analytics\"]\n7:I[90894,[],\"ClientPageRoot\"]\n8:I[31001,[\"5018\",\"static/chunks/b9c90cb7-855affe3521a304b.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA\",\"5802\",\"static/chunks/69b09407-d4e90c08c935cf19.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA\",\"4522\",\"static/chunks/4522-cbbd88027f8179f6.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA\",\"8974\",\"static/chunks/app/page-2c70261965f4c801.js?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA\"],\"default\"]\nb:I[59665,[],\"OutletBoundary\"]\ne:I[59665,[],\"ViewportBoundary\"]\n10:I[59665,[],\"MetadataBoundary\"]\n12:I[26614,[],\"\"]\n:HL[\"/_next/static/media/028c0d39d2e8f589-s.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/media/5b01f339abf2f1a5.p.woff2\",\"font\",{\"crossOrigin\":\"\",\"type\":\"font/woff2\"}]\n:HL[\"/_next/static/css/09cb3273c6dbe1af.css?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA\",\"style\"]\n6:T83f,"])</script><script>self.__next_f.push([1, "\u003cdiv id=\"v0-built-with-button-46ac314a-0656-4ef6-9ce1-78378a8e1a42\" style=\"\nborder: 1px solid hsl(0deg 0% 100% / 12%);\nposition: fixed;\nbottom: 24px;\nright: 24px;\nz-index: 1000;\nbackground: #121212;\ncolor: white;\npadding: 8px 12px;\nborder-radius: 8px;\nfont-weight: 400;\nfont-size: 14px;\nbox-shadow: 0 2px 8px rgba(0,0,0,0.12);\nletter-spacing: 0.02em;\ntransition: all 0.2s;\ndisplay: flex;\nalign-items: center;\ngap: 4px;\nfont-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n\"\u003e\n\u003ca\n  href=\"https://v0.app/chat/api/open/built-with-v0/b_XngPK3fggyj\"\n  target=\"_blank\"\n  rel=\"noopener\"\n  style=\"\n    color: inherit;\n    text-decoration: none;\n    display: flex;\n    align-items: center;\n    gap: 4px;\n  \"\n\u003e\n  Built with\n  \u003csvg\n    fill=\"currentColor\"\n    viewBox=\"0 0 147 70\"\n    xmlns=\"http://www.w3.org/2000/svg\"\n    style=\"width: 20px; height: 20px;\"\n  \u003e\n    \u003cpath d=\"M56 50.2031V14H70V60.1562C70 65.5928 65.5928 70 60.1562 70C57.5605 70 54.9982 68.9992 53.1562 67.1573L0 14H19.7969L56 50.2031Z\" /\u003e\n    \u003cpath d=\"M147 56H133V23.9531L100.953 56H133V70H96.6875C85.8144 70 77 61.1856 77 50.3125V14H91V46.1562L123.156 14H91V0H127.312C138.186 0 147 8.81439 147 19.6875V56Z\" /\u003e\n  \u003c/svg\u003e\n\u003c/a\u003e\n\n\u003cbutton\n  onclick=\"document.getElementById('v0-built-with-button-46ac314a-0656-4ef6-9ce1-78378a8e1a42').style.display='none'\"\n  onmouseenter=\"this.style.opacity='1'\"\n  onmouseleave=\"this.style.opacity='0.7'\"\n  style=\"\n    background: none;\n    border: none;\n    color: white;\n    cursor: pointer;\n    padding: 2px;\n    margin-left: 4px;\n    border-radius: 2px;\n    display: flex;\n    align-items: center;\n    opacity: 0.7;\n    transition: opacity 0.2s;\n    transform: translateZ(0);\n  \"\n  aria-label=\"Close\"\n\u003e\n  \u003csvg width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"\u003e\n    \u003cpath d=\"M18 6L6 18M6 6l12 12\"/\u003e\n  \u003c/svg\u003e\n\u003c/button\u003e\n\n\u003cspan style=\"\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  white-space: nowrap;\n\"\u003e\n  v0\n\u003c/span\u003e\n\u003c/div\u003e"])</script><script>self.__next_f.push([1, "0:{\"P\":null,\"b\":\"gUBXZA8_uevdZVZthAGS_\",\"p\":\"\",\"c\":[\"\",\"\"],\"i\":false,\"f\":[[[\"\",{\"children\":[\"__PAGE__\",{}]},\"$undefined\",\"$undefined\",true],[\"\",[\"$\",\"$1\",\"c\",{\"children\":[[[\"$\",\"link\",\"0\",{\"rel\":\"stylesheet\",\"href\":\"/_next/static/css/09cb3273c6dbe1af.css?dpl=dpl_3qZ53VV9sdVRo4cysce6u1iJfjsA\",\"precedence\":\"next\",\"crossOrigin\":\"$undefined\",\"nonce\":\"$undefined\"}]],[\"$\",\"html\",null,{\"lang\":\"en\",\"children\":[[\"$\",\"head\",null,{\"children\":[\"$\",\"style\",null,{\"children\":\"\\nhtml {\\n  font-family: 'GeistSans', 'GeistSans Fallback';\\n  --font-sans: __variable_fb8f2c;\\n  --font-mono: __variable_f910ec;\\n}\\n        \"}]}],[\"$\",\"body\",null,{\"children\":[[\"$\",\"$2\",null,{\"fallback\":null,\"children\":[\"$\",\"$L3\",null,{\"parallelRouterKey\":\"children\",\"error\":\"$undefined\",\"errorStyles\":\"$undefined\",\"errorScripts\":\"$undefined\",\"template\":[\"$\",\"$L4\",null,{}],\"templateStyles\":\"$undefined\",\"templateScripts\":\"$undefined\",\"notFound\":[[[\"$\",\"title\",null,{\"children\":\"404: This page could not be found.\"}],[\"$\",\"div\",null,{\"style\":{\"fontFamily\":\"system-ui,\\\"Segoe UI\\\",Roboto,Helvetica,Arial,sans-serif,\\\"Apple Color Emoji\\\",\\\"Segoe UI Emoji\\\"\",\"height\":\"100vh\",\"textAlign\":\"center\",\"display\":\"flex\",\"flexDirection\":\"column\",\"alignItems\":\"center\",\"justifyContent\":\"center\"},\"children\":[\"$\",\"div\",null,{\"children\":[[\"$\",\"style\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}\"}}],[\"$\",\"h1\",null,{\"className\":\"next-error-h1\",\"style\":{\"display\":\"inline-block\",\"margin\":\"0 20px 0 0\",\"padding\":\"0 23px 0 0\",\"fontSize\":24,\"fontWeight\":500,\"verticalAlign\":\"top\",\"lineHeight\":\"49px\"},\"children\":404}],[\"$\",\"div\",null,{\"style\":{\"display\":\"inline-block\"},\"children\":[\"$\",\"h2\",null,{\"style\":{\"fontSize\":14,\"fontWeight\":400,\"lineHeight\":\"49px\",\"margin\":0},\"children\":\"This page could not be found.\"}]}]]}]}]],[]],\"forbidden\":\"$undefined\",\"unauthorized\":\"$undefined\"}]}],[\"$\",\"$L5\",null,{}],[\"$\",\"div\",null,{\"dangerouslySetInnerHTML\":{\"__html\":\"$6\"}}]]}]]}]]}],{\"children\":[\"__PAGE__\",[\"$\",\"$1\",\"c\",{\"children\":[[\"$\",\"$L7\",null,{\"Component\":\"$8\",\"searchParams\":{},\"params\":{},\"promises\":[\"$@9\",\"$@a\"]}],\"$undefined\",null,[\"$\",\"$Lb\",null,{\"children\":[\"$Lc\",\"$Ld\",null]}]]}],{},null,false]},null,false],[\"$\",\"$1\",\"h\",{\"children\":[null,[\"$\",\"$1\",\"BcZBO0FmNW8qKS7jX6jsq\",{\"children\":[[\"$\",\"$Le\",null,{\"children\":\"$Lf\"}],[\"$\",\"meta\",null,{\"name\":\"next-size-adjust\",\"content\":\"\"}]]}],[\"$\",\"$L10\",null,{\"children\":\"$L11\"}]]}],false]],\"m\":\"$undefined\",\"G\":[\"$12\",\"$undefined\"],\"s\":false,\"S\":true}\n"])</script><script>self.__next_f.push([1, "9:{}\na:{}\n"])</script><script>self.__next_f.push([1, "f:[[\"$\",\"meta\",\"0\",{\"charSet\":\"utf-8\"}],[\"$\",\"meta\",\"1\",{\"name\":\"viewport\",\"content\":\"width=device-width, initial-scale=1\"}]]\nc:null\n"])</script><script>self.__next_f.push([1, "d:null\n11:[[\"$\",\"title\",\"0\",{\"children\":\"Capitalfrens\"}],[\"$\",\"meta\",\"1\",{\"name\":\"description\",\"content\":\"Pension and investment platform\"}],[\"$\",\"meta\",\"2\",{\"name\":\"generator\",\"content\":\"v0.app\"}]]\n"])</script><next-route-announcer style="position: absolute;"></next-route-announcer><div style="display: none; position: fixed; inset: 0px; z-index: 2147483647;"><iframe id="family-accounts-master-iframe" src="https://app.family.co/injected/master" style="color-scheme: initial; forced-color-adjust: initial; mask: initial; math-depth: initial; position: absolute; position-anchor: initial; text-size-adjust: initial; appearance: initial; color: initial; font: initial; font-palette: initial; font-synthesis: initial; position-area: initial; text-orientation: initial; text-rendering: initial; text-spacing-trim: initial; -webkit-font-smoothing: initial; -webkit-locale: initial; -webkit-text-orientation: initial; -webkit-writing-mode: initial; writing-mode: initial; zoom: initial; accent-color: initial; place-content: initial; place-items: initial; place-self: initial; alignment-baseline: initial; anchor-name: initial; anchor-scope: initial; animation-composition: initial; animation: initial; app-region: initial; aspect-ratio: initial; backdrop-filter: initial; backface-visibility: initial; background: initial; background-blend-mode: initial; baseline-shift: initial; baseline-source: initial; block-size: initial; border-block: initial; border: 0px; border-radius: 0px; border-collapse: initial; border-end-end-radius: initial; border-end-start-radius: initial; border-inline: initial; border-start-end-radius: initial; border-start-start-radius: initial; bottom: initial; box-decoration-break: initial; box-shadow: initial; box-sizing: initial; break-after: initial; break-before: initial; break-inside: initial; buffered-rendering: initial; caption-side: initial; caret-color: initial; clear: initial; clip: initial; clip-path: initial; clip-rule: initial; color-interpolation: initial; color-interpolation-filters: initial; color-rendering: initial; columns: initial; column-fill: initial; gap: initial; column-rule: initial; column-span: initial; contain: initial; contain-intrinsic-block-size: initial; contain-intrinsic-size: initial; contain-intrinsic-inline-size: initial; container: initial; content: initial; content-visibility: initial; counter-increment: initial; counter-reset: initial; counter-set: initial; cursor: initial; cx: initial; cy: initial; d: initial; display: initial; dominant-baseline: initial; dynamic-range-limit: initial; empty-cells: initial; field-sizing: initial; fill: initial; fill-opacity: initial; fill-rule: initial; filter: initial; flex: initial; flex-flow: initial; float: initial; flood-color: initial; flood-opacity: initial; grid: initial; grid-area: initial; height: 100vh; hyphenate-character: initial; hyphenate-limit-chars: initial; hyphens: initial; image-orientation: initial; image-rendering: initial; initial-letter: initial; inline-size: initial; inset-block: initial; inset-inline: initial; interpolate-size: initial; isolation: initial; left: 0px; letter-spacing: initial; lighting-color: initial; line-break: initial; list-style: initial; margin-block: initial; margin: 0px; margin-inline: initial; marker: initial; mask-type: initial; math-shift: initial; math-style: initial; max-block-size: initial; max-height: initial; max-inline-size: initial; max-width: initial; min-block-size: initial; min-height: initial; min-inline-size: initial; min-width: initial; mix-blend-mode: initial; object-fit: initial; object-position: initial; object-view-box: initial; offset: initial; opacity: initial; order: initial; orphans: initial; outline: initial; outline-offset: initial; overflow-anchor: initial; overflow-block: initial; overflow-clip-margin: initial; overflow-inline: initial; overflow-wrap: initial; overflow: initial; overlay: initial; overscroll-behavior-block: initial; overscroll-behavior-inline: initial; overscroll-behavior: initial; padding-block: initial; padding: 0px; padding-inline: initial; page: initial; page-orientation: initial; paint-order: initial; perspective: initial; perspective-origin: initial; pointer-events: initial; position-try: initial; position-visibility: initial; print-color-adjust: initial; quotes: initial; r: initial; reading-flow: initial; reading-order: initial; resize: initial; right: initial; rotate: initial; ruby-align: initial; ruby-position: initial; rx: initial; ry: initial; scale: initial; scroll-behavior: initial; scroll-initial-target: initial; scroll-margin-block: initial; scroll-margin: initial; scroll-margin-inline: initial; scroll-marker-group: initial; scroll-padding-block: initial; scroll-padding: initial; scroll-padding-inline: initial; scroll-snap-align: initial; scroll-snap-stop: initial; scroll-snap-type: initial; scroll-timeline: initial; scrollbar-color: initial; scrollbar-gutter: initial; scrollbar-width: initial; shape-image-threshold: initial; shape-margin: initial; shape-outside: initial; shape-rendering: initial; size: initial; speak: initial; stop-color: initial; stop-opacity: initial; stroke: initial; stroke-dasharray: initial; stroke-dashoffset: initial; stroke-linecap: initial; stroke-linejoin: initial; stroke-miterlimit: initial; stroke-opacity: initial; stroke-width: initial; tab-size: initial; table-layout: initial; text-align: initial; text-align-last: initial; text-anchor: initial; text-box: initial; text-combine-upright: initial; text-decoration: initial; text-decoration-skip-ink: initial; text-emphasis: initial; text-emphasis-position: initial; text-indent: initial; text-overflow: initial; text-shadow: initial; text-transform: initial; text-underline-offset: initial; text-underline-position: initial; text-wrap: initial; timeline-scope: initial; top: 0px; touch-action: initial; transform: initial; transform-box: initial; transform-origin: initial; transform-style: initial; transition: initial; translate: initial; user-select: initial; vector-effect: initial; vertical-align: initial; view-timeline: initial; view-transition-class: initial; view-transition-name: initial; visibility: initial; border-spacing: initial; -webkit-box-align: initial; -webkit-box-decoration-break: initial; -webkit-box-direction: initial; -webkit-box-flex: initial; -webkit-box-ordinal-group: initial; -webkit-box-orient: initial; -webkit-box-pack: initial; -webkit-box-reflect: initial; -webkit-line-break: initial; -webkit-line-clamp: initial; -webkit-mask-box-image: initial; -webkit-rtl-ordering: initial; -webkit-ruby-position: initial; -webkit-tap-highlight-color: initial; -webkit-text-combine: initial; -webkit-text-decorations-in-effect: initial; -webkit-text-fill-color: initial; -webkit-text-security: initial; -webkit-text-stroke: initial; -webkit-user-drag: initial; white-space-collapse: initial; widows: initial; width: 100vw; will-change: initial; word-break: initial; word-spacing: initial; x: initial; y: initial; z-index: initial;"></iframe></div></body></html>

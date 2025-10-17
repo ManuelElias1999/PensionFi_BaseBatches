@@ -6,7 +6,7 @@ import { Label } from "./ui/label"
 import { Slider } from "./ui/slider"
 import { Button } from "./ui/button"
 import { Calculator, DollarSign, Calendar, TrendingUp, User, Clock } from 'lucide-react'
-import vaultAbi from '/abi/vault.json'
+import vaultAbi from '../../abi/vault.json'
 
 interface PensionCalculatorProps {
   language: 'es' | 'en'
@@ -29,7 +29,7 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
 
   const translations = {
     es: {
-      title: "Calculadora de Pensiones",
+      title: "Planifica Tu Retiro",
       subtitle: "Calcula el capital necesario para tu jubilación",
       desiredPension: "Pensión mensual deseada ($)",
       retirementYears: "Años de jubilación",
@@ -48,14 +48,14 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
       insufficientFunds: "Fondos insuficientes",
       approving: "Aprobando USDT...",
       creating: "Creando plan de pensión...",
-      approveSuccess: "Aprobación exitosa ✅",
+      approveSuccess: "Aprobación exitosa",
       connectToCreate: "Conecta tu billetera para crear un plan",
       useUsdt: "Usa USDT en Base Sepolia para crear tu plan",
       yourBalance: "Tu balance de USDT:",
       loadingBalance: "Cargando balance..."
     },
     en: {
-      title: "Pension Calculator",
+      title: "Plan Your Retirement",
       subtitle: "Calculate the capital needed for your retirement",
       desiredPension: "Desired monthly pension ($)",
       retirementYears: "Retirement years",
@@ -74,7 +74,7 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
       insufficientFunds: "Insufficient funds",
       approving: "Approving USDT...",
       creating: "Creating pension plan...",
-      approveSuccess: "Approval successful ✅",
+      approveSuccess: "Approval successful",
       connectToCreate: "Connect your wallet to create a plan",
       useUsdt: "Use USDT on Base Sepolia to create your plan",
       yourBalance: "Your USDT balance:",
@@ -242,9 +242,10 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
           const approveTx = await usdtContract.approve(PENSION_CONTRACT_ADDRESS, totalRequired)
           await approveTx.wait()
           setStatus(t.approveSuccess)
-        } catch (approveError: any) {
+        } catch (approveError) {
+          const errorMessage = approveError instanceof Error ? approveError.message : 'Unknown error'
           console.error('Approval error:', approveError)
-          setStatus(`Approval failed: ${approveError.message || 'Unknown error'}`)
+          setStatus(`Approval failed: ${errorMessage}`)
           setIsCreatingPlan(false)
           return
         }
@@ -264,7 +265,7 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
       const receipt = await tx.wait()
       
       // Extract plan ID from events
-      const planCreatedEvent = receipt.logs.find((log: any) => {
+      const planCreatedEvent = receipt.logs.find((log: ethers.Log) => {
         try {
           const parsedLog = pensionContract.interface.parseLog(log)
           return parsedLog && parsedLog.name === 'PlanCreated'
@@ -280,36 +281,37 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
       }
       
       setStatus(t.planCreated)
-    } catch (error: any) {
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error('Error creating plan:', error)
-      setStatus(`Error: ${error.message || 'Unknown error'}`)
+      setStatus(`Error: ${errorMessage}`)
     } finally {
       setIsCreatingPlan(false)
     }
   }
 
   return (
-    <div className="flex-1 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">{t.title}</h1>
+    <div className="flex-1 p-8 bg-gray-50">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">{t.title}</h1>
           <p className="text-lg text-gray-600">{t.subtitle}</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6">
           {/* Input Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Calculator className="h-5 w-5" />
+          <Card className="border-gray-200 shadow-md">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="flex items-center space-x-2 text-gray-900">
+                <Calculator className="h-5 w-5 text-gray-700" />
                 <span>Parámetros</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               {/* USDT Balance */}
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <div className="text-sm text-gray-600">{t.yourBalance}</div>
-                <div className="text-lg font-semibold text-blue-600">
+              <div className="p-4 bg-gray-100 rounded-xl border border-gray-200">
+                <div className="text-sm text-gray-600 mb-1">{t.yourBalance}</div>
+                <div className="text-xl font-bold text-[#27F5A9]">
                   {isBalanceLoading 
                     ? t.loadingBalance 
                     : usdtBalance !== "0" 
@@ -319,16 +321,16 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
               </div>
               
               {/* Desired Pension */}
-              <div className="space-y-2">
-                <Label htmlFor="pension">{t.desiredPension}</Label>
+              <div className="space-y-3">
+                <Label htmlFor="pension" className="text-gray-700 font-medium">{t.desiredPension}</Label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="pension"
                     type="number"
                     value={desiredPension}
                     onChange={(e) => setDesiredPension(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 border-gray-300 focus:border-[#27F5A9] focus:ring-[#27F5A9]"
                     placeholder="1000"
                   />
                 </div>
@@ -336,11 +338,11 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
 
               {/* Years Slider */}
               <div className="space-y-4">
-                <Label>{t.retirementYears}</Label>
+                <Label className="text-gray-700 font-medium">{t.retirementYears}</Label>
                 <div className="px-2">
                   <Slider
                     value={years}
-                    onValueChange={(value) => setYears(value as number[])}
+                    onValueChange={(value) => setYears(value)}
                     max={10}
                     min={1}
                     step={1}
@@ -349,7 +351,7 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
                 </div>
                 <div className="flex justify-between text-sm text-gray-500">
                   <span>1 {t.year}</span>
-                  <span className="font-medium text-lg text-gray-800">
+                  <span className="font-semibold text-lg text-gray-900">
                     {years[0]} {years[0] === 1 ? t.year : t.years}
                   </span>
                   <span>10 {t.years}</span>
@@ -359,66 +361,66 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
           </Card>
 
           {/* Results Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5" />
+          <Card className="border-gray-200 shadow-md">
+            <CardHeader className="border-b border-gray-100">
+              <CardTitle className="flex items-center space-x-2 text-gray-900">
+                <TrendingUp className="h-5 w-5 text-gray-700" />
                 <span>Resultados</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               {/* Required Capital */}
-              <div className="text-center p-6 bg-blue-50 rounded-lg">
+              <div className="text-center p-6 bg-gradient-to-br from-[#27F5A9]/10 to-[#27F5A9]/5 rounded-xl border border-[#27F5A9]/20">
                 <div className="text-sm text-gray-600 mb-2">{t.requiredCapital}</div>
-                <div className="text-4xl font-bold text-blue-600">
+                <div className="text-4xl font-bold text-[#27F5A9]">
                   {formatCurrency(requiredCapital)}
                 </div>
                 <div className="text-xs text-gray-500 mt-2">{t.assumptions}</div>
               </div>
 
               {/* Breakdown */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-4 bg-gray-100 rounded-xl border border-gray-200">
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Pensión mensual</span>
+                    <Calendar className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm text-gray-700 font-medium">Pensión mensual</span>
                   </div>
-                  <span className="font-semibold">{formatCurrency(parseFloat(desiredPension) || 0)}</span>
+                  <span className="font-bold text-gray-900">{formatCurrency(parseFloat(desiredPension) || 0)}</span>
                 </div>
 
-                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                <div className="flex justify-between items-center p-4 bg-gray-100 rounded-xl border border-gray-200">
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">Total de meses</span>
+                    <Calendar className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm text-gray-700 font-medium">Total de meses</span>
                   </div>
-                  <span className="font-semibold">{years[0] * 12} meses</span>
+                  <span className="font-bold text-gray-900">{years[0] * 12} meses</span>
                 </div>
 
-                <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                <div className="flex justify-between items-center p-4 bg-[#27F5A9]/10 rounded-xl border border-[#27F5A9]/30">
                   <div className="flex items-center space-x-2">
-                    <DollarSign className="h-4 w-4 text-green-500" />
-                    <span className="text-sm text-gray-600">Total a recibir</span>
+                    <DollarSign className="h-4 w-4 text-[#27F5A9]" />
+                    <span className="text-sm text-gray-700 font-medium">Total a recibir</span>
                   </div>
-                  <span className="font-semibold text-green-600">
+                  <span className="font-bold text-[#27F5A9]">
                     {formatCurrency((parseFloat(desiredPension) || 0) * years[0] * 12)}
                   </span>
                 </div>
               </div>
 
               {/* CTA with Create Plan Button */}
-              <div className="space-y-4">
-                <div className="text-center p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg">
-                  <p className="font-semibold">{t.startInvesting}</p>
-                  <p className="text-sm opacity-90">{t.useUsdt}</p>
+              <div className="space-y-4 pt-2">
+                <div className="text-center p-5 bg-gradient-to-r from-[#27F5A9] to-[#20e094] text-[#1a1a1a] rounded-xl shadow-lg">
+                  <p className="font-bold text-lg">{t.startInvesting}</p>
+                  <p className="text-sm opacity-90 mt-1">{t.useUsdt}</p>
                 </div>
                 
                 {/* Create Plan Button */}
-                <div className="pt-2">
+                <div>
                   {account ? (
                     <Button
                       onClick={handleCreatePlan}
                       disabled={isCreatingPlan}
-                      className="w-full"
+                      className="w-full bg-gray-700 hover:bg-gray-800 text-white"
                     >
                       {isCreatingPlan ? (
                         <>
@@ -433,20 +435,20 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
                       )}
                     </Button>
                   ) : (
-                    <Button disabled className="w-full">
+                    <Button disabled className="w-full bg-gray-400">
                       <User className="mr-2 h-4 w-4" />
                       {t.connectToCreate}
                     </Button>
                   )}
                   
                   {status && (
-                    <p className="mt-2 text-sm text-center text-gray-600">{status}</p>
+                    <p className="mt-3 text-sm text-center text-gray-700 font-medium">{status}</p>
                   )}
                   
                   {planId && (
-                    <div className="mt-3 p-3 bg-green-50 rounded-lg">
-                      <p className="text-sm text-green-800">
-                        <span className="font-semibold">{t.planId}:</span> {planId}
+                    <div className="mt-3 p-4 bg-[#27F5A9]/10 rounded-xl border border-[#27F5A9]/30">
+                      <p className="text-sm text-gray-800">
+                        <span className="font-bold">{t.planId}:</span> {planId}
                       </p>
                     </div>
                   )}

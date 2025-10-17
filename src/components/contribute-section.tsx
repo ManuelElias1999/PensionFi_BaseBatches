@@ -1,4 +1,3 @@
-import React from 'react'
 import GovernancePortal from './governance-portal'
 
 interface ContributeSectionProps {
