@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-// Smart Contract Deployed in Base Testnet 0x13b0CE661550c6C9858be83d21bd8528012E77Fd
+// Smart Contract Deployed in Base Testnet 0x1F9d38B49430Edd284B9b9DF398CbA4a52f1E3db
 
 interface IERC20 {
     function totalSupply() external view returns (uint256);
@@ -18,14 +18,6 @@ interface AutomationCompatibleInterface {
     function performUpkeep(bytes calldata performData) external;
 }
 
-/*
-  Pension MVP Simplificado para mainnet y testnet
-  - Beneficiario = msg.sender
-  - Pagos automáticos desde mainWallet usando Chainlink Automation
-  - Intervalo fijo: 30 días (mainnet) o 5 minutos (testnet)
-  - 95% va a mainWallet, 5% a feeWallet
-*/
-
 contract PensionMVP is AutomationCompatibleInterface {
     IERC20 public immutable usdt;
     address public immutable mainWallet;
@@ -34,7 +26,9 @@ contract PensionMVP is AutomationCompatibleInterface {
 
     uint256 public nextPlanId;
     uint256 public lastCheckedIndex;
-    uint256 public immutable interval; // Fijo, según red
+    uint256 public immutable interval; // 5 min testnet, 30 days mainnet
+    uint256 public immutable minDuration; // total seconds mínimo (12 pagos)
+    uint256 public immutable maxDuration; // total segundos máximo (60 pagos testnet, 120 pagos mainnet)
 
     struct Plan {
         address beneficiary;
@@ -57,51 +51,66 @@ contract PensionMVP is AutomationCompatibleInterface {
         _;
     }
 
-    constructor(address _usdt, address _mainWallet, address _feeWallet, uint256 _interval) {
+    constructor(
+        address _usdt,
+        address _mainWallet,
+        address _feeWallet,
+        uint256 _interval,
+        uint256 _minDuration,
+        uint256 _maxDuration
+    ) {
         require(_usdt != address(0) && _mainWallet != address(0) && _feeWallet != address(0), "zero addr");
         usdt = IERC20(_usdt);
         mainWallet = _mainWallet;
         feeWallet = _feeWallet;
         owner = msg.sender;
         nextPlanId = 1;
-        interval = _interval; // set 300 for testnet or 30*24*60*60 for mainnet
+        interval = _interval;
+        minDuration = _minDuration;
+        maxDuration = _maxDuration;
     }
 
-    // Beneficiario = msg.sender
+    /// @notice Usuario deposita según monthlyAmount y months
     function payPension(
-        uint256 totalAmount,
-        uint256 paymentAmount,
-        uint256 payments
+        uint256 monthlyAmount,
+        uint256 months
     ) external {
-        require(totalAmount > 0 && paymentAmount > 0 && payments > 0, "invalid amounts");
+        require(monthlyAmount > 0 && months > 0, "invalid amounts");
 
-        // Transfer totalAmount from user
+        uint256 totalToReceive = monthlyAmount * months;
+        uint256 totalAmount = (totalToReceive * 100) / 110; // aplica 10% extra
+
+        uint256 totalDuration = months * interval;
+        require(totalDuration >= minDuration, "duration < min");
+        require(totalDuration <= maxDuration, "duration > max");
+
+        // Transfer totalAmount desde el usuario al contrato
         bool ok = usdt.transferFrom(msg.sender, address(this), totalAmount);
         require(ok, "transferFrom failed");
 
-        // Split 95/5
+        // Divide 95/5
         uint256 mainShare = (totalAmount * 95) / 100;
         uint256 feeShare = totalAmount - mainShare;
 
         require(usdt.transfer(mainWallet, mainShare), "transfer to mainWallet failed");
         require(usdt.transfer(feeWallet, feeShare), "transfer to feeWallet failed");
 
-        // Create plan
+        // Crea plan
         uint256 planId = nextPlanId++;
         plans[planId] = Plan({
             beneficiary: msg.sender,
-            paymentAmount: paymentAmount,
-            paymentsRemaining: payments,
+            paymentAmount: monthlyAmount,
+            paymentsRemaining: months,
             lastPaid: block.timestamp,
             active: true
         });
 
         planIds.push(planId);
 
-        emit PlanCreated(planId, msg.sender, totalAmount, paymentAmount, payments);
+        emit PlanCreated(planId, msg.sender, totalAmount, monthlyAmount, months);
     }
 
-    /* ========== Chainlink Automation ========== */
+    /// Chainlink Automation
     function checkUpkeep(bytes calldata) external override returns (bool upkeepNeeded, bytes memory performData) {
         uint256 len = planIds.length;
         if (len == 0) return (false, bytes(""));
@@ -119,7 +128,6 @@ contract PensionMVP is AutomationCompatibleInterface {
                 return (upkeepNeeded, performData);
             }
         }
-
         return (false, bytes(""));
     }
 
@@ -131,7 +139,6 @@ contract PensionMVP is AutomationCompatibleInterface {
         require(p.paymentsRemaining > 0, "no payments left");
         require(block.timestamp >= p.lastPaid + interval, "not due yet");
 
-        // Transfer paymentAmount from mainWallet to beneficiary
         bool success = usdt.transferFrom(mainWallet, p.beneficiary, p.paymentAmount);
         if (!success) {
             emit PaymentFailed(planId, "transferFrom mainWallet failed");
@@ -149,7 +156,7 @@ contract PensionMVP is AutomationCompatibleInterface {
         }
     }
 
-    /* ========== Views ========== */
+    /// Views
     function getPlanIds() external view returns (uint256[] memory) {
         return planIds;
     }
@@ -169,7 +176,7 @@ contract PensionMVP is AutomationCompatibleInterface {
         active = p.active;
     }
 
-    /* ========== Admin ========== */
+    /// Admin
     function setOwner(address newOwner) external onlyOwner {
         require(newOwner != address(0), "zero addr");
         owner = newOwner;
