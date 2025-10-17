@@ -3,7 +3,7 @@ import { ethers } from "ethers"
 import vaultAbi from '/abi/vault.json'
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
-import { Clock, Calendar, DollarSign, User, CheckCircle, AlertCircle, Wallet, Info } from 'lucide-react'
+import { Clock, DollarSign, CheckCircle, AlertCircle, Wallet, Info } from 'lucide-react'
 
 interface Plan {
   id: bigint
@@ -22,7 +22,6 @@ interface MyPlansProps {
 
 // Contract addresses (Base Sepolia testnet)
 const PENSION_CONTRACT_ADDRESS = '0x12123d469941B880331472DF74b8C9414EC17499'
-const USDT_ADDRESS = '0x05105fa9611F7A23ce7008f19Bcc384a24921FE6'
 
 export default function MyPlans({ language, account }: MyPlansProps) {
   const [plans, setPlans] = useState<Plan[]>([])
@@ -192,9 +191,10 @@ export default function MyPlans({ language, account }: MyPlansProps) {
           return newSet
         })
       }, 2000)
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error processing payment:", error)
-      setPaymentStatus(prev => ({ ...prev, [planIdStr]: `${t.paymentError}: ${error.message || 'Unknown error'}` }))
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      setPaymentStatus(prev => ({ ...prev, [planIdStr]: `${t.paymentError}: ${errorMessage}` }))
       
       setTimeout(() => {
         setProcessingPayments(prev => {
@@ -245,6 +245,7 @@ export default function MyPlans({ language, account }: MyPlansProps) {
   // Load plans when account changes
   useEffect(() => {
     loadPlans()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [account])
 
   return (

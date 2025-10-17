@@ -1,6 +1,8 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter } from '@fortawesome/free-brands-svg-icons';
 
+type SectionKey = 'home' | 'swap' | 'retire' | 'contribute' | 'myPlans';
+
 interface SidebarProps {
   language: 'es' | 'en'
   setLanguage: (lang: 'es' | 'en') => void
@@ -11,7 +13,7 @@ interface SidebarProps {
     myPlans: string
   }
   activeSection: string
-  onSectionClick: (section: 'home' | 'swap' | 'retire' | 'contribute' | 'myPlans') => void
+  onSectionClick: (section: SectionKey) => void
 }
 
 export default function Sidebar({ translations, activeSection, onSectionClick }: SidebarProps) {
@@ -19,15 +21,15 @@ export default function Sidebar({ translations, activeSection, onSectionClick }:
     <div className="w-72 bg-gradient-to-b from-[#242424] to-[#1a1a1a] rounded-2xl shadow-xl p-8 flex flex-col">
       {/* Navigation Menu */}
       <nav className="space-y-2 flex-1">
-        {[
-          { key: 'retire', label: translations.retire },
-          { key: 'myPlans', label: translations.myPlans },
-          { key: 'swap', label: translations.invest },
-          { key: 'contribute', label: translations.contribute }
-        ].map((item) => (
+        {([
+          { key: 'retire' as const, label: translations.retire },
+          { key: 'myPlans' as const, label: translations.myPlans },
+          { key: 'swap' as const, label: translations.invest },
+          { key: 'contribute' as const, label: translations.contribute }
+        ] as const).map((item) => (
           <button
             key={item.key}
-            onClick={() => onSectionClick(item.key as any)}
+            onClick={() => onSectionClick(item.key)}
             className={`w-full text-left py-3 px-4 rounded-lg text-base font-medium transition-all duration-200 ${
               activeSection === item.key 
                 ? 'text-[#27F5A9] bg-[#27F5A9]/10' 
