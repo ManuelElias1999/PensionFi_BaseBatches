@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter } from '@fortawesome/free-brands-svg-icons';
 
-type SectionKey = 'home' | 'swap' | 'retire' | 'contribute' | 'myPlans';
+type SectionKey = 'home' | 'swap' | 'retire' | 'contribute' | 'myPlans' | 'manifest';
 
 interface SidebarProps {
   language: 'es' | 'en'
@@ -11,6 +11,7 @@ interface SidebarProps {
     retire: string
     contribute: string
     myPlans: string
+    manifest: string
   }
   activeSection: string
   onSectionClick: (section: SectionKey) => void
@@ -25,7 +26,8 @@ export default function Sidebar({ translations, activeSection, onSectionClick }:
           { key: 'retire' as const, label: translations.retire },
           { key: 'myPlans' as const, label: translations.myPlans },
           { key: 'swap' as const, label: translations.invest },
-          { key: 'contribute' as const, label: translations.contribute }
+          { key: 'contribute' as const, label: translations.contribute },
+          { key: 'manifest' as const, label: translations.manifest }
         ] as const).map((item) => (
           <button
             key={item.key}

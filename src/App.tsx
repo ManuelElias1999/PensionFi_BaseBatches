@@ -5,6 +5,7 @@ import SwapSection from './components/swap-section'
 import PensionCalculator from './components/pension-calculator'
 import ContributeSection from './components/contribute-section'
 import MyPlans from './components/my-plans'
+import ManifestSection from './components/manifest-section'
 import LandingPage from './components/landing-page'
 import { ConnectWalletButton } from './components/Connectkit';
 import { useAccount } from 'wagmi'
@@ -12,7 +13,7 @@ import { useAccount } from 'wagmi'
 function App() {
   const [showLanding, setShowLanding] = useState(true)
   const [language, setLanguage] = useState<'es' | 'en'>('es')
-  const [activeSection, setActiveSection] = useState<'home' | 'swap' | 'retire' | 'contribute' | 'myPlans'>('home')
+  const [activeSection, setActiveSection] = useState<'home' | 'swap' | 'retire' | 'contribute' | 'myPlans' | 'manifest'>('home')
   const { address: account } = useAccount()
 
   const translations = {
@@ -20,13 +21,15 @@ function App() {
       retire: "Retire",
       contribute: "Contribute",
       myPlans: "My Plans",
-      invest: "Invest (soon)"
+      invest: "Invest (soon)",
+      manifest: "Manifiesto"
     },
     en: {
       retire: "Retire",
       contribute: "Contribute",
       myPlans: "My Plans",
-      invest: "Invest (soon)"
+      invest: "Invest (soon)",
+      manifest: "Manifesto"
     }
   }
 
@@ -40,6 +43,8 @@ function App() {
         return <MyPlans language={language} account={account || null} />
       case 'contribute':
         return <ContributeSection language={language} />
+      case 'manifest':
+        return <ManifestSection language={language} />
       default:
         return <HomeSection language={language} />
     }
