@@ -59,10 +59,13 @@ function App() {
       {/* Header */}
       <div className="bg-gradient-to-r from-[#242424] to-[#1a1a1a] shadow-lg">
         <div className="flex items-center justify-between px-8 py-5">
-          <div className="flex items-center space-x-1">
+          <button 
+            onClick={() => setActiveSection('home')}
+            className="flex items-center space-x-1 hover:opacity-80 transition-opacity duration-200 cursor-pointer"
+          >
             <span className="text-3xl font-bold text-white">Pension</span>
             <span className="text-3xl font-bold text-[#27F5A9]">Fi</span>
-          </div>
+          </button>
           
           <div className="flex items-center">
             <ConnectWalletButton />
