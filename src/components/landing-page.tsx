@@ -133,11 +133,19 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
 
   const t = translations[language]
 
-  // Calculate deposit based on contract logic
+  // Calculate deposit based on contract logic (matching Solidity exactly)
   const calculateDeposit = (monthly: number, months: number): number => {
-    const totalToReceive = monthly * months
-    const totalWithFee = (totalToReceive * 100) / 110 // 10% fee
-    return Math.floor(totalWithFee / 100) * 100 // Truncate to 2 decimals
+    if (monthly <= 0 || months <= 0) return 0
+
+    // Work in wei (USDC has 6 decimals) to match contract logic
+    const monthlyAmountWei = BigInt(Math.floor(monthly * 1e6))
+    const monthsCountBigInt = BigInt(months)
+    const totalToReceiveWei = monthlyAmountWei * monthsCountBigInt
+    const totalAmountWei = (totalToReceiveWei * 100n) / 110n // Integer division
+    const truncatedWei = (totalAmountWei / 100n) * 100n // Truncate last 2 digits
+
+    // Convert back to USDC (regular number)
+    return Number(truncatedWei) / 1e6
   }
 
   const monthlyAmount = parseFloat(calcMonthly) || 0

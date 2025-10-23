@@ -164,14 +164,18 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
 
     if (monthlyAmount <= 0 || yearsCount <= 0) return null
 
-    // Contract formula: totalToReceive = monthlyAmount * months
-    // totalAmount = (totalToReceive * 100) / 110 (apply 10% fee)
-    // Then truncate to 2 decimals: (totalAmount / 100) * 100
-    const totalToReceive = monthlyAmount * monthsCount
-    const totalWithFee = (totalToReceive * 100) / 110
-    const truncated = Math.floor(totalWithFee / 100) * 100
+    // Contract formula (working in wei - USDC has 6 decimals):
+    // totalToReceive = monthlyAmount * months (in wei)
+    // totalAmount = (totalToReceive * 100) / 110
+    // totalAmount = (totalAmount / 100) * 100 (truncate last 2 wei digits)
 
-    return parseUnits(truncated.toString(), 6)
+    const monthlyAmountWei = BigInt(Math.floor(monthlyAmount * 1e6))
+    const monthsCountBigInt = BigInt(monthsCount)
+    const totalToReceiveWei = monthlyAmountWei * monthsCountBigInt
+    const totalAmountWei = (totalToReceiveWei * 100n) / 110n // Integer division
+    const truncatedWei = (totalAmountWei / 100n) * 100n // Truncate last 2 digits
+
+    return truncatedWei
   }
 
   const totalDeposit = calculateTotalDeposit()
