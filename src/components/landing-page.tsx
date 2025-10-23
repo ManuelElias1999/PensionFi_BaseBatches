@@ -142,7 +142,8 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
 
   const monthlyAmount = parseFloat(calcMonthly) || 0
   const totalDeposit = calculateDeposit(monthlyAmount, calcMonths)
-  const totalReceive = monthlyAmount * calcMonths
+  // Total to receive is deposit * 1.1 (10% fee)
+  const totalReceive = totalDeposit * 1.1
 
   return (
     <div className="min-h-screen bg-[#1a1a1a]">

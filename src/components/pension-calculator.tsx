@@ -171,7 +171,8 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
   }
 
   const totalDeposit = calculateTotalDeposit()
-  const totalToReceive = totalDeposit ? (parseFloat(desiredPension) || 0) * months[0] : 0
+  // Total to receive is deposit * 1.1 (10% fee)
+  const totalToReceive = totalDeposit ? (Number(formatUnits(totalDeposit, 6)) * 1.1) : 0
 
   // Input validation
   useEffect(() => {
