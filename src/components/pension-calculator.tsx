@@ -16,16 +16,16 @@ interface PensionCalculatorProps {
 }
 
 // Validation constraints
-const MIN_MONTHLY_PENSION = 10 // $10 USDC
+const MIN_MONTHLY_PENSION = 1 // $1 USDC
 const MAX_MONTHLY_PENSION = 1000000 // $1M USDC
-const MIN_MONTHS = 12 // Minimum 12 months (1 year)
-const MAX_MONTHS = 120 // Maximum 120 months (10 years)
+const MIN_YEARS = 1 // Minimum 1 year
+const MAX_YEARS = 10 // Maximum 10 years
 
 type TransactionStep = 'idle' | 'approving' | 'approved' | 'creating' | 'success' | 'error'
 
 export default function PensionCalculator({ language }: PensionCalculatorProps) {
   const [desiredPension, setDesiredPension] = useState<string>("100")
-  const [months, setMonths] = useState<number[]>([12]) // Change to months
+  const [years, setYears] = useState<number[]>([1]) // Duration in years (UI)
   const [validationError, setValidationError] = useState<string>("")
   const [currentStep, setCurrentStep] = useState<TransactionStep>('idle')
   const [errorDetails, setErrorDetails] = useState<{ title: string; message: string; action?: string; actionUrl?: string } | null>(null)
@@ -79,16 +79,16 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
       title: "Planifica Tu Retiro",
       subtitle: "Calcula tu plan de pensión personalizado",
       desiredPension: "Pensión mensual deseada (USDC)",
-      durationMonths: "Duración (meses)",
-      months: "meses",
-      month: "mes",
+      durationYears: "Duración (años)",
+      years: "años",
+      year: "año",
       totalDeposit: "Depósito total requerido",
       totalReceive: "Total a recibir",
       yourBalance: "Tu balance de USDC:",
       validation: {
         tooLow: `La pensión debe ser al menos $${MIN_MONTHLY_PENSION}`,
         tooHigh: `La pensión no puede exceder $${MAX_MONTHLY_PENSION}`,
-        invalidMonths: `Duración debe ser entre ${MIN_MONTHS} y ${MAX_MONTHS} meses`,
+        invalidYears: `Duración debe ser entre ${MIN_YEARS} y ${MAX_YEARS} años`,
         insufficientBalance: "Balance insuficiente para este plan",
         belowMinDeposit: "El depósito está por debajo del mínimo requerido",
       },
@@ -116,16 +116,16 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
       title: "Plan Your Retirement",
       subtitle: "Calculate your personalized pension plan",
       desiredPension: "Desired monthly pension (USDC)",
-      durationMonths: "Duration (months)",
-      months: "months",
-      month: "month",
+      durationYears: "Duration (years)",
+      years: "years",
+      year: "year",
       totalDeposit: "Total deposit required",
       totalReceive: "Total to receive",
       yourBalance: "Your USDC balance:",
       validation: {
         tooLow: `Pension must be at least $${MIN_MONTHLY_PENSION}`,
         tooHigh: `Pension cannot exceed $${MAX_MONTHLY_PENSION}`,
-        invalidMonths: `Duration must be between ${MIN_MONTHS} and ${MAX_MONTHS} months`,
+        invalidYears: `Duration must be between ${MIN_YEARS} and ${MAX_YEARS} years`,
         insufficientBalance: "Insufficient balance for this plan",
         belowMinDeposit: "Deposit is below minimum required",
       },
@@ -156,9 +156,10 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
   // Calculate total deposit based on contract logic
   const calculateTotalDeposit = (): bigint | null => {
     const monthlyAmount = parseFloat(desiredPension) || 0
-    const monthsCount = months[0]
+    const yearsCount = years[0]
+    const monthsCount = yearsCount * 12 // Convert years to months for contract
 
-    if (monthlyAmount <= 0 || monthsCount <= 0) return null
+    if (monthlyAmount <= 0 || yearsCount <= 0) return null
 
     // Contract formula: totalToReceive = monthlyAmount * months
     // totalAmount = (totalToReceive * 100) / 110 (apply 10% fee)
@@ -177,7 +178,7 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
   // Input validation
   useEffect(() => {
     const monthlyAmount = parseFloat(desiredPension) || 0
-    const monthsCount = months[0]
+    const yearsCount = years[0]
 
     if (monthlyAmount > 0 && monthlyAmount < MIN_MONTHLY_PENSION) {
       setValidationError(t.validation.tooLow)
@@ -189,8 +190,8 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
       return
     }
 
-    if (monthsCount < MIN_MONTHS || monthsCount > MAX_MONTHS) {
-      setValidationError(t.validation.invalidMonths)
+    if (yearsCount < MIN_YEARS || yearsCount > MAX_YEARS) {
+      setValidationError(t.validation.invalidYears)
       return
     }
 
@@ -205,7 +206,7 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
     }
 
     setValidationError("")
-  }, [desiredPension, months, totalDeposit, rawBalance, minDeposit, t])
+  }, [desiredPension, years, totalDeposit, rawBalance, minDeposit, t])
 
   // Handle transaction state changes
   useEffect(() => {
@@ -268,7 +269,7 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
     if (!totalDeposit || !account) return
 
     const monthlyAmount = parseUnits(desiredPension, 6)
-    const monthsCount = BigInt(months[0])
+    const monthsCount = BigInt(years[0] * 12) // Convert years to months for contract
 
     setErrorDetails(null)
     payPension({
@@ -359,23 +360,23 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
 
               {/* Duration Slider */}
               <div className="space-y-4">
-                <Label className="text-gray-700 font-medium">{t.durationMonths}</Label>
+                <Label className="text-gray-700 font-medium">{t.durationYears}</Label>
                 <div className="px-2">
                   <Slider
-                    value={months}
-                    onValueChange={(value) => setMonths(value)}
-                    max={MAX_MONTHS}
-                    min={MIN_MONTHS}
+                    value={years}
+                    onValueChange={(value) => setYears(value)}
+                    max={MAX_YEARS}
+                    min={MIN_YEARS}
                     step={1}
                     className="w-full"
                   />
                 </div>
                 <div className="flex justify-between text-sm text-gray-500">
-                  <span>1 {t.month}</span>
+                  <span>1 {t.year}</span>
                   <span className="font-semibold text-lg text-gray-900">
-                    {months[0]} {months[0] === 1 ? t.month : t.months}
+                    {years[0]} {years[0] === 1 ? t.year : t.years}
                   </span>
-                  <span>{MAX_MONTHS} {t.months}</span>
+                  <span>{MAX_YEARS} {t.years}</span>
                 </div>
               </div>
             </CardContent>

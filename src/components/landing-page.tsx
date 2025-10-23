@@ -8,7 +8,7 @@ interface LandingPageProps {
 
 export default function LandingPage({ onEnterApp, language }: LandingPageProps) {
   const [calcMonthly, setCalcMonthly] = useState<string>("1000")
-  const [calcMonths, setCalcMonths] = useState<number>(12)
+  const [calcYears, setCalcYears] = useState<number>(1)
 
   const translations = {
     es: {
@@ -22,7 +22,7 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
       calculator: {
         title: "Calcula Tu Pensión",
         monthly: "Pensión mensual deseada",
-        duration: "Duración (meses)",
+        duration: "Duración (años)",
         deposit: "Necesitas depositar",
         receive: "Recibirás en total",
         cta: "Crear Mi Plan"
@@ -81,7 +81,7 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
       calculator: {
         title: "Calculate Your Pension",
         monthly: "Desired monthly pension",
-        duration: "Duration (months)",
+        duration: "Duration (years)",
         deposit: "You need to deposit",
         receive: "You'll receive in total",
         cta: "Create My Plan"
@@ -141,7 +141,8 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
   }
 
   const monthlyAmount = parseFloat(calcMonthly) || 0
-  const totalDeposit = calculateDeposit(monthlyAmount, calcMonths)
+  const monthsCount = calcYears * 12 // Convert years to months
+  const totalDeposit = calculateDeposit(monthlyAmount, monthsCount)
   // Total to receive is deposit * 1.1 (10% fee)
   const totalReceive = totalDeposit * 1.1
 
@@ -243,14 +244,14 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
                 <div className="flex items-center gap-4">
                   <input
                     type="range"
-                    value={calcMonths}
-                    onChange={(e) => setCalcMonths(parseInt(e.target.value))}
-                    min="12"
-                    max="120"
+                    value={calcYears}
+                    onChange={(e) => setCalcYears(parseInt(e.target.value))}
+                    min="1"
+                    max="10"
                     className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#27F5A9]"
                   />
                   <span className="text-2xl font-bold text-[#27F5A9] min-w-[60px] text-right">
-                    {calcMonths}
+                    {calcYears}
                   </span>
                 </div>
               </div>
