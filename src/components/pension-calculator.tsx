@@ -43,12 +43,15 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
     args: account ? [account] : undefined,
   })
 
-  // Read current allowance
+  // Read current allowance (with polling after approval)
   const { data: currentAllowance, refetch: refetchAllowance } = useReadContract({
     address: USDC_ADDRESS,
     abi: USDC_ABI,
     functionName: 'allowance',
     args: account ? [account, PENSION_CONTRACT_ADDRESS] : undefined,
+    query: {
+      refetchInterval: currentStep === 'approved' ? 1000 : false, // Poll every 1s after approval
+    }
   })
 
   // Read contract min deposit
@@ -175,6 +178,14 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
   // Total to receive is deposit * 1.1 (10% fee)
   const totalToReceive = totalDeposit ? (Number(formatUnits(totalDeposit, 6)) * 1.1) : 0
 
+  // Check if approval is needed
+  const isApprovalNeeded = totalDeposit && currentAllowance !== undefined
+    ? (currentAllowance as bigint) < totalDeposit
+    : true
+  const isBalanceSufficient = totalDeposit && rawBalance ? (rawBalance as bigint) >= totalDeposit : false
+  const canApprove = isConnected && isBalanceSufficient && !validationError && isApprovalNeeded
+  const canCreate = isConnected && isBalanceSufficient && !validationError && !isApprovalNeeded
+
   // Input validation
   useEffect(() => {
     const monthlyAmount = parseFloat(desiredPension) || 0
@@ -221,7 +232,14 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
       setCurrentStep('approved')
       refetchAllowance()
     }
-  }, [approveSuccess])
+  }, [approveSuccess, refetchAllowance])
+
+  // Auto-reset to idle when approval is no longer needed (detected by polling)
+  useEffect(() => {
+    if (currentStep === 'approved' && !isApprovalNeeded) {
+      setCurrentStep('idle')
+    }
+  }, [currentStep, isApprovalNeeded])
 
   useEffect(() => {
     if (payPensionHash && !createTxHash) {
@@ -279,11 +297,6 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
       args: [monthlyAmount, monthsCount, totalDeposit],
     })
   }
-
-  const isApprovalNeeded = totalDeposit && currentAllowance ? (currentAllowance as bigint) < totalDeposit : true
-  const isBalanceSufficient = totalDeposit && rawBalance ? (rawBalance as bigint) >= totalDeposit : false
-  const canApprove = isConnected && isBalanceSufficient && !validationError && isApprovalNeeded
-  const canCreate = isConnected && isBalanceSufficient && !validationError && !isApprovalNeeded
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -419,6 +432,7 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
                 <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
                   <div className="text-sm font-semibold text-blue-900 mb-3">{t.preflightChecks}</div>
                   <div className="space-y-2 text-sm">
+                    {/* Balance Check */}
                     <div className="flex items-center justify-between">
                       <span className="text-blue-800">{t.balanceCheck}</span>
                       {isBalanceSufficient ? (
@@ -427,6 +441,29 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
                         <XCircle className="h-5 w-5 text-red-600" />
                       )}
                     </div>
+                    <div className="text-xs text-blue-700 pl-2">
+                      Balance: {formatCurrency(parseFloat(usdcBalance))} USDC
+                      {totalDeposit && ` | Required: ${formatCurrency(parseFloat(formatUnits(totalDeposit, 6)))} USDC`}
+                    </div>
+
+                    {/* Min Deposit Check */}
+                    {minDeposit && totalDeposit && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-blue-800">Min Deposit</span>
+                          {totalDeposit >= (minDeposit as bigint) ? (
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                          ) : (
+                            <XCircle className="h-5 w-5 text-red-600" />
+                          )}
+                        </div>
+                        <div className="text-xs text-blue-700 pl-2">
+                          Contract Min: {formatCurrency(parseFloat(formatUnits(minDeposit as bigint, 6)))} USDC
+                        </div>
+                      </>
+                    )}
+
+                    {/* Approval Check */}
                     <div className="flex items-center justify-between">
                       <span className="text-blue-800">{t.approvalCheck}</span>
                       {!isApprovalNeeded ? (
@@ -441,6 +478,14 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
                         </Badge>
                       )}
                     </div>
+
+                    {/* Debug Info */}
+                    {validationError && (
+                      <div className="text-xs text-red-600 pl-2 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        Error: {validationError}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
