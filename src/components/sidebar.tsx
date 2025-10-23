@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faXTwitter } from '@fortawesome/free-brands-svg-icons';
+import { Menu, X } from 'lucide-react'
 
 type SectionKey = 'home' | 'swap' | 'retire' | 'contribute' | 'myPlans' | 'manifest';
 
@@ -18,10 +20,48 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ translations, activeSection, onSectionClick }: SidebarProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const handleNavClick = (section: SectionKey) => {
+    onSectionClick(section)
+    setIsMobileMenuOpen(false) // Close mobile menu after navigation
+  }
+
   return (
-    <div className="w-72 bg-gradient-to-b from-[#242424] to-[#1a1a1a] rounded-2xl shadow-xl p-8 flex flex-col">
-      {/* Navigation Menu */}
-      <nav className="space-y-2 flex-1">
+    <>
+      {/* Mobile Menu Button - Only visible on mobile */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="md:hidden fixed top-24 left-4 z-50 bg-[#27F5A9] text-[#1a1a1a] p-3 rounded-lg shadow-lg hover:bg-[#20e094] transition-all"
+        aria-label="Toggle menu"
+      >
+        {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Responsive */}
+      <div className={`
+        fixed md:relative
+        inset-y-0 left-0
+        z-40 md:z-0
+        w-72
+        bg-gradient-to-b from-[#242424] to-[#1a1a1a]
+        rounded-none md:rounded-2xl
+        shadow-xl
+        p-8
+        flex flex-col
+        transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        {/* Navigation Menu */}
+        <nav className="space-y-2 flex-1">
         {([
           { key: 'retire' as const, label: translations.retire },
           { key: 'myPlans' as const, label: translations.myPlans },
@@ -31,33 +71,34 @@ export default function Sidebar({ translations, activeSection, onSectionClick }:
         ] as const).map((item) => (
           <button
             key={item.key}
-            onClick={() => onSectionClick(item.key)}
+            onClick={() => handleNavClick(item.key)}
             className={`w-full text-left py-3 px-4 rounded-lg text-base font-medium transition-all duration-200 ${
-              activeSection === item.key 
-                ? 'text-[#27F5A9] bg-[#27F5A9]/10' 
+              activeSection === item.key
+                ? 'text-[#27F5A9] bg-[#27F5A9]/10'
                 : 'text-gray-300 hover:text-white hover:bg-[#2a2a2a]'
             }`}
           >
             {item.label}
           </button>
         ))}
-      </nav>
+        </nav>
 
-      {/* Decorative Element */}
-      <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
+        {/* Decorative Element */}
+        <div className="my-6 h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
 
-      {/* X (Twitter) Link */}
-      <div className="flex items-center justify-between">
-        <span className="text-gray-500 text-sm">Follow us</span>
-        <a
-          href="https://x.com/mejubilo_com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center w-12 h-12 bg-[#27F5A9] text-[#1a1a1a] rounded-xl hover:bg-[#20E096] transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-[#27F5A9]/30"
-        >
-          <FontAwesomeIcon icon={faXTwitter} className="text-lg" />
-        </a>
+        {/* X (Twitter) Link */}
+        <div className="flex items-center justify-between">
+          <span className="text-gray-500 text-sm">Follow us</span>
+          <a
+            href="https://x.com/mejubilo_com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center w-12 h-12 bg-[#27F5A9] text-[#1a1a1a] rounded-xl hover:bg-[#20E096] transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-[#27F5A9]/30"
+          >
+            <FontAwesomeIcon icon={faXTwitter} className="text-lg" />
+          </a>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

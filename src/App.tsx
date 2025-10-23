@@ -46,7 +46,7 @@ function App() {
       case 'manifest':
         return <ManifestSection language={language} />
       default:
-        return <HomeSection language={language} />
+        return <HomeSection language={language} onNavigate={setActiveSection} />
     }
   }
 
@@ -74,7 +74,7 @@ function App() {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 p-4 gap-4">
+      <div className="flex flex-1 p-2 md:p-4 gap-0 md:gap-4">
         <Sidebar
           language={language}
           setLanguage={setLanguage}
@@ -82,7 +82,7 @@ function App() {
           activeSection={activeSection}
           onSectionClick={setActiveSection}
         />
-        <div className="flex-1 bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div className="flex-1 bg-white rounded-2xl shadow-xl overflow-hidden w-full">
           {renderActiveSection()}
         </div>
       </div>

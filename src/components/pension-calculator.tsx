@@ -1,293 +1,295 @@
 import { useState, useEffect } from "react"
-import { ethers } from "ethers"
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Input } from "./ui/input"
 import { Label } from "./ui/label"
 import { Slider } from "./ui/slider"
 import { Button } from "./ui/button"
-import { Calculator, DollarSign, Calendar, TrendingUp, User, Clock } from 'lucide-react'
-import vaultAbi from '../../abi/vault.json'
+import { Badge } from "./ui/badge"
+import { Calculator, DollarSign, Calendar, TrendingUp, User, Clock, CheckCircle2, XCircle, ExternalLink, AlertCircle, Loader2 } from 'lucide-react'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { parseUnits, formatUnits, Address } from 'viem'
+import { PENSION_CONTRACT_ADDRESS, USDC_ADDRESS, PENSION_ABI, USDC_ABI } from '../config/contract'
+import { parseContractError, getBaseScanUrl, formatTransactionHash } from '../utils/errorHandling'
 
 interface PensionCalculatorProps {
   language: 'es' | 'en'
 }
 
-// Contract addresses (Base Sepolia testnet)
-const PENSION_CONTRACT_ADDRESS = '0x12123d469941B880331472DF74b8C9414EC17499' // Pension contract
-const USDT_ADDRESS = '0x05105fa9611F7A23ce7008f19Bcc384a24921FE6' // Mock USDT on Base Sepolia
+// Validation constraints
+const MIN_MONTHLY_PENSION = 10 // $10 USDC
+const MAX_MONTHLY_PENSION = 1000000 // $1M USDC
+const MIN_MONTHS = 1
+const MAX_MONTHS = 60 // 5 years max
+
+type TransactionStep = 'idle' | 'approving' | 'approved' | 'creating' | 'success' | 'error'
 
 export default function PensionCalculator({ language }: PensionCalculatorProps) {
-  const [desiredPension, setDesiredPension] = useState<string>("1000")
-  const [years, setYears] = useState<number[]>([5])
-  const [requiredCapital, setRequiredCapital] = useState<number>(0)
-  const [account, setAccount] = useState<string | null>(null)
-  const [usdtBalance, setUsdtBalance] = useState<string>("0")
-  const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(true)
-  const [status, setStatus] = useState<string>("")
-  const [isCreatingPlan, setIsCreatingPlan] = useState<boolean>(false)
-  const [planId, setPlanId] = useState<string | null>(null)
+  const [desiredPension, setDesiredPension] = useState<string>("100")
+  const [months, setMonths] = useState<number[]>([12]) // Change to months
+  const [validationError, setValidationError] = useState<string>("")
+  const [currentStep, setCurrentStep] = useState<TransactionStep>('idle')
+  const [errorDetails, setErrorDetails] = useState<{ title: string; message: string; action?: string; actionUrl?: string } | null>(null)
+  const [approvalTxHash, setApprovalTxHash] = useState<string>("")
+  const [createTxHash, setCreateTxHash] = useState<string>("")
+
+  // Wagmi hooks
+  const { address: account, isConnected, chain } = useAccount()
+
+  // Read USDC balance
+  const { data: rawBalance, refetch: refetchBalance } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: USDC_ABI,
+    functionName: 'balanceOf',
+    args: account ? [account] : undefined,
+  })
+
+  // Read current allowance
+  const { data: currentAllowance, refetch: refetchAllowance } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: USDC_ABI,
+    functionName: 'allowance',
+    args: account ? [account, PENSION_CONTRACT_ADDRESS] : undefined,
+  })
+
+  // Read contract min deposit
+  const { data: minDeposit } = useReadContract({
+    address: PENSION_CONTRACT_ADDRESS,
+    abi: PENSION_ABI,
+    functionName: 'minDeposit',
+  })
+
+  // Write contracts
+  const { writeContract: approveUsdc, data: approveHash, error: approveError, isPending: isApprovePending } = useWriteContract()
+  const { writeContract: payPension, data: payPensionHash, error: payPensionError, isPending: isPayPensionPending } = useWriteContract()
+
+  // Wait for approve transaction
+  const { isLoading: isApproving, isSuccess: approveSuccess } = useWaitForTransactionReceipt({
+    hash: approveHash,
+  })
+
+  // Wait for create plan transaction
+  const { isLoading: isCreating, isSuccess: createSuccess } = useWaitForTransactionReceipt({
+    hash: payPensionHash,
+  })
+
+  const usdcBalance = rawBalance ? formatUnits(rawBalance as bigint, 6) : "0"
 
   const translations = {
     es: {
       title: "Planifica Tu Retiro",
-      subtitle: "Calcula el capital necesario para tu jubilación",
-      desiredPension: "Pensión mensual deseada ($)",
-      retirementYears: "Años de jubilación",
-      year: "año",
-      years: "años",
-      requiredCapital: "Capital necesario",
-      assumptions: "Asumiendo 10% de rentabilidad anual",
-      monthlyPayment: "Pago mensual requerido",
-      startInvesting: "¡Comienza a invertir hoy!",
-      createPlan: "Crear Plan de Pensión",
-      creatingPlan: "Creando plan...",
-      planCreated: "¡Plan creado exitosamente!",
-      planId: "ID del Plan",
-      connectWallet: "Conectar Billetera",
-      walletRequired: "Se requiere billetera conectada",
-      insufficientFunds: "Fondos insuficientes",
-      approving: "Aprobando USDT...",
-      creating: "Creando plan de pensión...",
-      approveSuccess: "Aprobación exitosa",
-      connectToCreate: "Conecta tu billetera para crear un plan",
-      useUsdt: "Usa USDT en Base Sepolia para crear tu plan",
-      yourBalance: "Tu balance de USDT:",
-      loadingBalance: "Cargando balance..."
+      subtitle: "Calcula tu plan de pensión personalizado",
+      desiredPension: "Pensión mensual deseada (USDC)",
+      durationMonths: "Duración (meses)",
+      months: "meses",
+      month: "mes",
+      totalDeposit: "Depósito total requerido",
+      totalReceive: "Total a recibir",
+      yourBalance: "Tu balance de USDC:",
+      validation: {
+        tooLow: `La pensión debe ser al menos $${MIN_MONTHLY_PENSION}`,
+        tooHigh: `La pensión no puede exceder $${MAX_MONTHLY_PENSION}`,
+        invalidMonths: `Duración debe ser entre ${MIN_MONTHS} y ${MAX_MONTHS} meses`,
+        insufficientBalance: "Balance insuficiente para este plan",
+        belowMinDeposit: "El depósito está por debajo del mínimo requerido",
+      },
+      steps: {
+        idle: "Listo para comenzar",
+        approving: "Paso 1/2: Aprobando USDC...",
+        approved: "USDC Aprobado ✓",
+        creating: "Paso 2/2: Creando plan de pensión...",
+        success: "¡Plan creado exitosamente!",
+      },
+      preflightChecks: "Validaciones previas:",
+      balanceCheck: "Balance suficiente",
+      approvalCheck: "Aprobación de USDC",
+      approveButton: "1. Aprobar USDC",
+      createButton: "2. Crear Plan",
+      createPlanButton: "Crear Plan de Pensión",
+      approved: "Aprobado",
+      needsApproval: "Requiere aprobación",
+      viewTransaction: "Ver transacción",
+      connectFirst: "Conecta tu billetera primero",
+      wrongNetwork: "Cambia a Base network",
+      calculating: "Calculando...",
     },
     en: {
       title: "Plan Your Retirement",
-      subtitle: "Calculate the capital needed for your retirement",
-      desiredPension: "Desired monthly pension ($)",
-      retirementYears: "Retirement years",
-      year: "year",
-      years: "years",
-      requiredCapital: "Required capital",
-      assumptions: "Assuming 10% annual return",
-      monthlyPayment: "Required monthly payment",
-      startInvesting: "Start investing today!",
-      createPlan: "Create Pension Plan",
-      creatingPlan: "Creating plan...",
-      planCreated: "Plan created successfully!",
-      planId: "Plan ID",
-      connectWallet: "Connect Wallet",
-      walletRequired: "Wallet connection required",
-      insufficientFunds: "Insufficient funds",
-      approving: "Approving USDT...",
-      creating: "Creating pension plan...",
-      approveSuccess: "Approval successful",
-      connectToCreate: "Connect your wallet to create a plan",
-      useUsdt: "Use USDT on Base Sepolia to create your plan",
-      yourBalance: "Your USDT balance:",
-      loadingBalance: "Loading balance..."
+      subtitle: "Calculate your personalized pension plan",
+      desiredPension: "Desired monthly pension (USDC)",
+      durationMonths: "Duration (months)",
+      months: "months",
+      month: "month",
+      totalDeposit: "Total deposit required",
+      totalReceive: "Total to receive",
+      yourBalance: "Your USDC balance:",
+      validation: {
+        tooLow: `Pension must be at least $${MIN_MONTHLY_PENSION}`,
+        tooHigh: `Pension cannot exceed $${MAX_MONTHLY_PENSION}`,
+        invalidMonths: `Duration must be between ${MIN_MONTHS} and ${MAX_MONTHS} months`,
+        insufficientBalance: "Insufficient balance for this plan",
+        belowMinDeposit: "Deposit is below minimum required",
+      },
+      steps: {
+        idle: "Ready to start",
+        approving: "Step 1/2: Approving USDC...",
+        approved: "USDC Approved ✓",
+        creating: "Step 2/2: Creating pension plan...",
+        success: "Plan created successfully!",
+      },
+      preflightChecks: "Pre-flight checks:",
+      balanceCheck: "Sufficient balance",
+      approvalCheck: "USDC Approval",
+      approveButton: "1. Approve USDC",
+      createButton: "2. Create Plan",
+      createPlanButton: "Create Pension Plan",
+      approved: "Approved",
+      needsApproval: "Needs approval",
+      viewTransaction: "View transaction",
+      connectFirst: "Connect your wallet first",
+      wrongNetwork: "Switch to Base network",
+      calculating: "Calculating...",
     }
   }
 
   const t = translations[language]
 
-  // Fetch USDT balance when account changes
+  // Calculate total deposit based on contract logic
+  const calculateTotalDeposit = (): bigint | null => {
+    const monthlyAmount = parseFloat(desiredPension) || 0
+    const monthsCount = months[0]
+
+    if (monthlyAmount <= 0 || monthsCount <= 0) return null
+
+    // Contract formula: totalToReceive = monthlyAmount * months
+    // totalAmount = (totalToReceive * 100) / 110 (apply 10% fee)
+    // Then truncate to 2 decimals: (totalAmount / 100) * 100
+    const totalToReceive = monthlyAmount * monthsCount
+    const totalWithFee = (totalToReceive * 100) / 110
+    const truncated = Math.floor(totalWithFee / 100) * 100
+
+    return parseUnits(truncated.toString(), 6)
+  }
+
+  const totalDeposit = calculateTotalDeposit()
+  const totalToReceive = totalDeposit ? (parseFloat(desiredPension) || 0) * months[0] : 0
+
+  // Input validation
   useEffect(() => {
-    const fetchUsdtBalance = async () => {
-      if (!account) {
-        setUsdtBalance("0")
-        setIsBalanceLoading(false)
-        return
-      }
+    const monthlyAmount = parseFloat(desiredPension) || 0
+    const monthsCount = months[0]
 
-      setIsBalanceLoading(true)
-      try {
-        const provider = new ethers.BrowserProvider(window.ethereum)
-        const usdtContract = new ethers.Contract(USDT_ADDRESS, [
-          "function balanceOf(address) view returns (uint256)"
-        ], provider)
-        
-        const balance = await usdtContract.balanceOf(account)
-        const formattedBalance = ethers.formatUnits(balance, 6) // USDT has 6 decimals
-        setUsdtBalance(formattedBalance)
-      } catch (balanceError) {
-        console.warn('Could not fetch USDT balance:', balanceError)
-        setUsdtBalance("0")
-      } finally {
-        setIsBalanceLoading(false)
-      }
+    if (monthlyAmount > 0 && monthlyAmount < MIN_MONTHLY_PENSION) {
+      setValidationError(t.validation.tooLow)
+      return
     }
 
-    fetchUsdtBalance()
-  }, [account])
+    if (monthlyAmount > MAX_MONTHLY_PENSION) {
+      setValidationError(t.validation.tooHigh)
+      return
+    }
 
-  // Detect connected account
+    if (monthsCount < MIN_MONTHS || monthsCount > MAX_MONTHS) {
+      setValidationError(t.validation.invalidMonths)
+      return
+    }
+
+    if (totalDeposit && rawBalance && totalDeposit > (rawBalance as bigint)) {
+      setValidationError(t.validation.insufficientBalance)
+      return
+    }
+
+    if (totalDeposit && minDeposit && totalDeposit < (minDeposit as bigint)) {
+      setValidationError(t.validation.belowMinDeposit)
+      return
+    }
+
+    setValidationError("")
+  }, [desiredPension, months, totalDeposit, rawBalance, minDeposit, t])
+
+  // Handle transaction state changes
   useEffect(() => {
-    const loadAccount = async () => {
-      if (window.ethereum) {
-        try {
-          const provider = new ethers.BrowserProvider(window.ethereum)
-          const accounts = await provider.listAccounts()
-          if (accounts.length > 0) {
-            setAccount(accounts[0].address)
-          } else {
-            setAccount(null)
-          }
-        } catch (error) {
-          console.error('Error loading account:', error)
-          setAccount(null)
-        }
-      }
+    if (approveHash && !approvalTxHash) {
+      setApprovalTxHash(approveHash)
+      setCurrentStep('approving')
     }
-    
-    loadAccount()
-    
-    const handleAccountsChanged = (accounts: string[]) => {
-      if (accounts.length > 0) {
-        setAccount(accounts[0])
-      } else {
-        setAccount(null)
-        setUsdtBalance("0")
-      }
-    }
-    
-    const handleChainChanged = () => {
-      // Reload when chain changes
-      setTimeout(() => {
-        loadAccount()
-      }, 1000)
-    }
-    
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', handleAccountsChanged)
-      window.ethereum.on('chainChanged', handleChainChanged)
-    }
-    
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged)
-        window.ethereum.removeListener('chainChanged', handleChainChanged)
-      }
-    }
-  }, [])
+  }, [approveHash])
 
-  // Calculate required capital using present value of annuity formula
   useEffect(() => {
-    const monthlyPension = parseFloat(desiredPension) || 0
-    const totalYears = years[0]
-    const monthlyRate = 0.10 / 12 // 10% annual rate / 12 months
-    const totalMonths = totalYears * 12
-
-    if (monthlyPension > 0 && totalYears > 0) {
-      // Present Value of Annuity formula: PMT * [(1 - (1 + r)^-n) / r]
-      const presentValue = monthlyPension * ((1 - Math.pow(1 + monthlyRate, -totalMonths)) / monthlyRate)
-      setRequiredCapital(presentValue)
-    } else {
-      setRequiredCapital(0)
+    if (approveSuccess) {
+      setCurrentStep('approved')
+      refetchAllowance()
     }
-  }, [desiredPension, years])
+  }, [approveSuccess])
+
+  useEffect(() => {
+    if (payPensionHash && !createTxHash) {
+      setCreateTxHash(payPensionHash)
+      setCurrentStep('creating')
+    }
+  }, [payPensionHash])
+
+  useEffect(() => {
+    if (createSuccess) {
+      setCurrentStep('success')
+      refetchBalance()
+      refetchAllowance()
+    }
+  }, [createSuccess])
+
+  // Handle errors
+  useEffect(() => {
+    if (approveError) {
+      setCurrentStep('error')
+      setErrorDetails(parseContractError(approveError))
+    }
+  }, [approveError])
+
+  useEffect(() => {
+    if (payPensionError) {
+      setCurrentStep('error')
+      setErrorDetails(parseContractError(payPensionError))
+    }
+  }, [payPensionError])
+
+  const handleApprove = () => {
+    if (!totalDeposit || !account) return
+
+    setErrorDetails(null)
+    approveUsdc({
+      address: USDC_ADDRESS,
+      abi: USDC_ABI,
+      functionName: 'approve',
+      args: [PENSION_CONTRACT_ADDRESS, totalDeposit],
+    })
+  }
+
+  const handleCreatePlan = () => {
+    if (!totalDeposit || !account) return
+
+    const monthlyAmount = parseUnits(desiredPension, 6)
+    const monthsCount = BigInt(months[0])
+
+    setErrorDetails(null)
+    payPension({
+      address: PENSION_CONTRACT_ADDRESS,
+      abi: PENSION_ABI,
+      functionName: 'payPension',
+      args: [monthlyAmount, monthsCount, totalDeposit],
+    })
+  }
+
+  const isApprovalNeeded = totalDeposit && currentAllowance ? (currentAllowance as bigint) < totalDeposit : true
+  const isBalanceSufficient = totalDeposit && rawBalance ? (rawBalance as bigint) >= totalDeposit : false
+  const canApprove = isConnected && isBalanceSufficient && !validationError && isApprovalNeeded
+  const canCreate = isConnected && isBalanceSufficient && !validationError && !isApprovalNeeded
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount)
-  }
-
-  const handleCreatePlan = async () => {
-    if (!account) {
-      setStatus(t.walletRequired)
-      return
-    }
-
-    if (isCreatingPlan) return
-
-    setIsCreatingPlan(true)
-    setStatus(t.creating)
-
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      const signer = await provider.getSigner()
-      
-      // Parse values
-      const monthlyAmount = ethers.parseUnits(desiredPension, 6) // USDT has 6 decimals
-      const totalMonths = BigInt(years[0] * 12)
-      
-      // Create USDT contract instance
-      const usdtContract = new ethers.Contract(USDT_ADDRESS, [
-        "function balanceOf(address) view returns (uint256)",
-        "function allowance(address, address) view returns (uint256)",
-        "function approve(address, uint256) returns (bool)"
-      ], signer)
-      
-      // Check USDT balance
-      const balance = await usdtContract.balanceOf(account)
-      const totalRequired = monthlyAmount * totalMonths
-      
-      if (balance < totalRequired) {
-        setStatus(t.insufficientFunds)
-        setIsCreatingPlan(false)
-        return
-      }
-      
-      // Check allowance
-      const currentAllowance = await usdtContract.allowance(account, PENSION_CONTRACT_ADDRESS)
-      
-      // Approve if needed
-      if (currentAllowance < totalRequired) {
-        setStatus(t.approving)
-        try {
-          // Reset allowance first if needed
-          if (currentAllowance > 0n) {
-            const resetTx = await usdtContract.approve(PENSION_CONTRACT_ADDRESS, 0n)
-            await resetTx.wait()
-          }
-          
-          // Set new allowance
-          const approveTx = await usdtContract.approve(PENSION_CONTRACT_ADDRESS, totalRequired)
-          await approveTx.wait()
-          setStatus(t.approveSuccess)
-        } catch (approveError) {
-          const errorMessage = approveError instanceof Error ? approveError.message : 'Unknown error'
-          console.error('Approval error:', approveError)
-          setStatus(`Approval failed: ${errorMessage}`)
-          setIsCreatingPlan(false)
-          return
-        }
-      }
-      
-      // Create pension contract instance
-      const pensionContract = new ethers.Contract(PENSION_CONTRACT_ADDRESS, vaultAbi, signer)
-      
-      // Create pension plan
-      setStatus(t.creating)
-      const tx = await pensionContract.createPlan(
-        account, // beneficiary
-        monthlyAmount,
-        totalMonths
-      )
-      
-      const receipt = await tx.wait()
-      
-      // Extract plan ID from events
-      const planCreatedEvent = receipt.logs.find((log: ethers.Log) => {
-        try {
-          const parsedLog = pensionContract.interface.parseLog(log)
-          return parsedLog && parsedLog.name === 'PlanCreated'
-        } catch {
-          return false
-        }
-      })
-      
-      if (planCreatedEvent) {
-        const parsedLog = pensionContract.interface.parseLog(planCreatedEvent)
-        const newPlanId = parsedLog?.args.planId.toString()
-        setPlanId(newPlanId)
-      }
-      
-      setStatus(t.planCreated)
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.error('Error creating plan:', error)
-      setStatus(`Error: ${errorMessage}`)
-    } finally {
-      setIsCreatingPlan(false)
-    }
   }
 
   return (
@@ -304,155 +306,257 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
             <CardHeader className="border-b border-gray-100">
               <CardTitle className="flex items-center space-x-2 text-gray-900">
                 <Calculator className="h-5 w-5 text-gray-700" />
-                <span>Parámetros</span>
+                <span>Parameters</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              {/* USDT Balance */}
-              <div className="p-4 bg-gray-100 rounded-xl border border-gray-200">
-                <div className="text-sm text-gray-600 mb-1">{t.yourBalance}</div>
-                <div className="text-xl font-bold text-[#27F5A9]">
-                  {isBalanceLoading 
-                    ? t.loadingBalance 
-                    : usdtBalance !== "0" 
-                      ? `${usdtBalance} USDT` 
-                      : "0 USDT"}
+              {/* USDC Balance with refresh indicator */}
+              <div className="p-4 bg-gradient-to-br from-[#27F5A9]/10 to-[#27F5A9]/5 rounded-xl border border-[#27F5A9]/20">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="text-sm text-gray-600 mb-1">{t.yourBalance}</div>
+                    <div className="text-2xl font-bold text-[#27F5A9]">
+                      {usdcBalance} USDC
+                    </div>
+                  </div>
+                  {chain && chain.id !== 8453 && (
+                    <Badge variant="destructive" className="ml-2">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {t.wrongNetwork}
+                    </Badge>
+                  )}
                 </div>
               </div>
-              
-              {/* Desired Pension */}
+
+              {/* Desired Pension Input */}
               <div className="space-y-3">
-                <Label htmlFor="pension" className="text-gray-700 font-medium">{t.desiredPension}</Label>
+                <Label htmlFor="pension" className="text-gray-700 font-medium">
+                  {t.desiredPension}
+                </Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="pension"
                     type="number"
+                    min={MIN_MONTHLY_PENSION}
+                    max={MAX_MONTHLY_PENSION}
                     value={desiredPension}
                     onChange={(e) => setDesiredPension(e.target.value)}
-                    className="pl-10 border-gray-300 focus:border-[#27F5A9] focus:ring-[#27F5A9]"
-                    placeholder="1000"
+                    className={`pl-10 border-gray-300 focus:border-[#27F5A9] focus:ring-[#27F5A9] ${
+                      validationError ? 'border-red-500' : ''
+                    }`}
+                    placeholder={`Min: $${MIN_MONTHLY_PENSION}`}
                   />
                 </div>
+                {validationError && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    {validationError}
+                  </p>
+                )}
               </div>
 
-              {/* Years Slider */}
+              {/* Duration Slider */}
               <div className="space-y-4">
-                <Label className="text-gray-700 font-medium">{t.retirementYears}</Label>
+                <Label className="text-gray-700 font-medium">{t.durationMonths}</Label>
                 <div className="px-2">
                   <Slider
-                    value={years}
-                    onValueChange={(value) => setYears(value)}
-                    max={10}
-                    min={1}
+                    value={months}
+                    onValueChange={(value) => setMonths(value)}
+                    max={MAX_MONTHS}
+                    min={MIN_MONTHS}
                     step={1}
                     className="w-full"
                   />
                 </div>
                 <div className="flex justify-between text-sm text-gray-500">
-                  <span>1 {t.year}</span>
+                  <span>1 {t.month}</span>
                   <span className="font-semibold text-lg text-gray-900">
-                    {years[0]} {years[0] === 1 ? t.year : t.years}
+                    {months[0]} {months[0] === 1 ? t.month : t.months}
                   </span>
-                  <span>10 {t.years}</span>
+                  <span>{MAX_MONTHS} {t.months}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Results Section */}
+          {/* Results & Action Section */}
           <Card className="border-gray-200 shadow-md">
             <CardHeader className="border-b border-gray-100">
               <CardTitle className="flex items-center space-x-2 text-gray-900">
                 <TrendingUp className="h-5 w-5 text-gray-700" />
-                <span>Resultados</span>
+                <span>Summary & Actions</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              {/* Required Capital */}
-              <div className="text-center p-6 bg-gradient-to-br from-[#27F5A9]/10 to-[#27F5A9]/5 rounded-xl border border-[#27F5A9]/20">
-                <div className="text-sm text-gray-600 mb-2">{t.requiredCapital}</div>
-                <div className="text-4xl font-bold text-[#27F5A9]">
-                  {formatCurrency(requiredCapital)}
-                </div>
-                <div className="text-xs text-gray-500 mt-2">{t.assumptions}</div>
-              </div>
-
-              {/* Breakdown */}
+              {/* Calculation Results */}
               <div className="space-y-3">
                 <div className="flex justify-between items-center p-4 bg-gray-100 rounded-xl border border-gray-200">
                   <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm text-gray-700 font-medium">Pensión mensual</span>
+                    <DollarSign className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm text-gray-700 font-medium">{t.totalDeposit}</span>
                   </div>
-                  <span className="font-bold text-gray-900">{formatCurrency(parseFloat(desiredPension) || 0)}</span>
-                </div>
-
-                <div className="flex justify-between items-center p-4 bg-gray-100 rounded-xl border border-gray-200">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm text-gray-700 font-medium">Total de meses</span>
-                  </div>
-                  <span className="font-bold text-gray-900">{years[0] * 12} meses</span>
+                  <span className="font-bold text-gray-900">
+                    {totalDeposit ? formatCurrency(parseFloat(formatUnits(totalDeposit, 6))) : formatCurrency(0)}
+                  </span>
                 </div>
 
                 <div className="flex justify-between items-center p-4 bg-[#27F5A9]/10 rounded-xl border border-[#27F5A9]/30">
                   <div className="flex items-center space-x-2">
-                    <DollarSign className="h-4 w-4 text-[#27F5A9]" />
-                    <span className="text-sm text-gray-700 font-medium">Total a recibir</span>
+                    <TrendingUp className="h-4 w-4 text-[#27F5A9]" />
+                    <span className="text-sm text-gray-700 font-medium">{t.totalReceive}</span>
                   </div>
                   <span className="font-bold text-[#27F5A9]">
-                    {formatCurrency((parseFloat(desiredPension) || 0) * years[0] * 12)}
+                    {formatCurrency(totalToReceive)}
                   </span>
                 </div>
               </div>
 
-              {/* CTA with Create Plan Button */}
-              <div className="space-y-4 pt-2">
-                <div className="text-center p-5 bg-gradient-to-r from-[#27F5A9] to-[#20e094] text-[#1a1a1a] rounded-xl shadow-lg">
-                  <p className="font-bold text-lg">{t.startInvesting}</p>
-                  <p className="text-sm opacity-90 mt-1">{t.useUsdt}</p>
-                </div>
-                
-                {/* Create Plan Button */}
-                <div>
-                  {account ? (
-                    <Button
-                      onClick={handleCreatePlan}
-                      disabled={isCreatingPlan}
-                      className="w-full bg-gray-700 hover:bg-gray-800 text-white"
-                    >
-                      {isCreatingPlan ? (
-                        <>
-                          <Clock className="mr-2 h-4 w-4 animate-spin" />
-                          {t.creatingPlan}
-                        </>
+              {/* Pre-flight Checks */}
+              {isConnected && (
+                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="text-sm font-semibold text-blue-900 mb-3">{t.preflightChecks}</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-blue-800">{t.balanceCheck}</span>
+                      {isBalanceSufficient ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
                       ) : (
-                        <>
-                          <User className="mr-2 h-4 w-4" />
-                          {t.createPlan}
-                        </>
+                        <XCircle className="h-5 w-5 text-red-600" />
                       )}
-                    </Button>
-                  ) : (
-                    <Button disabled className="w-full bg-gray-400">
-                      <User className="mr-2 h-4 w-4" />
-                      {t.connectToCreate}
-                    </Button>
-                  )}
-                  
-                  {status && (
-                    <p className="mt-3 text-sm text-center text-gray-700 font-medium">{status}</p>
-                  )}
-                  
-                  {planId && (
-                    <div className="mt-3 p-4 bg-[#27F5A9]/10 rounded-xl border border-[#27F5A9]/30">
-                      <p className="text-sm text-gray-800">
-                        <span className="font-bold">{t.planId}:</span> {planId}
-                      </p>
                     </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-blue-800">{t.approvalCheck}</span>
+                      {!isApprovalNeeded ? (
+                        <Badge variant="default" className="bg-green-600">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          {t.approved}
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {t.needsApproval}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Transaction Progress */}
+              {currentStep !== 'idle' && currentStep !== 'error' && (
+                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    {(currentStep === 'approving' || currentStep === 'creating') && (
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                    )}
+                    {currentStep === 'success' && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+                    <span className="font-semibold text-blue-900">{t.steps[currentStep]}</span>
+                  </div>
+                  {approvalTxHash && (
+                    <a
+                      href={getBaseScanUrl(approvalTxHash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                    >
+                      Approval: {formatTransactionHash(approvalTxHash)}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                  {createTxHash && (
+                    <a
+                      href={getBaseScanUrl(createTxHash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                    >
+                      Plan: {formatTransactionHash(createTxHash)}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
                   )}
                 </div>
+              )}
+
+              {/* Error Display */}
+              {errorDetails && currentStep === 'error' && (
+                <div className="p-4 bg-red-50 rounded-xl border border-red-200">
+                  <div className="flex items-start gap-2">
+                    <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="font-semibold text-red-900">{errorDetails.title}</div>
+                      <div className="text-sm text-red-800 mt-1">{errorDetails.message}</div>
+                      {errorDetails.action && (
+                        <div className="text-sm text-red-700 mt-2 font-medium">
+                          {errorDetails.actionUrl ? (
+                            <a
+                              href={errorDetails.actionUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline flex items-center gap-1"
+                            >
+                              {errorDetails.action}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            errorDetails.action
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                {!isConnected ? (
+                  <Button disabled className="w-full bg-gray-400">
+                    <User className="mr-2 h-4 w-4" />
+                    {t.connectFirst}
+                  </Button>
+                ) : isApprovalNeeded ? (
+                  <Button
+                    onClick={handleApprove}
+                    disabled={!canApprove || isApproving || isApprovePending}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {isApproving || isApprovePending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t.steps.approving}
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        {t.approveButton}
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleCreatePlan}
+                    disabled={!canCreate || isCreating || isPayPensionPending || currentStep === 'success'}
+                    className="w-full bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a]"
+                  >
+                    {isCreating || isPayPensionPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t.steps.creating}
+                      </>
+                    ) : currentStep === 'success' ? (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        {t.steps.success}
+                      </>
+                    ) : (
+                      <>
+                        <User className="mr-2 h-4 w-4" />
+                        {t.createPlanButton}
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

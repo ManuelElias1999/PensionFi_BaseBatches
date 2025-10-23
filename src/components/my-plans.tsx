@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react"
-import { ethers } from "ethers"
-import vaultAbi from '/abi/vault.json'
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Button } from "./ui/button"
-import { Clock, DollarSign, CheckCircle, AlertCircle, Wallet, Info } from 'lucide-react'
+import { Badge } from "./ui/badge"
+import { Clock, DollarSign, CheckCircle, AlertCircle, Wallet, Info, ExternalLink, Loader2, RefreshCw } from 'lucide-react'
+import { useAccount, useReadContract, useReadContracts } from 'wagmi'
+import { formatUnits, Address } from 'viem'
+import { PENSION_CONTRACT_ADDRESS, PENSION_ABI } from '../config/contract'
+import { getBaseScanUrl } from '../utils/errorHandling'
 
 interface Plan {
   id: bigint
-  beneficiary: string
-  monthlyAmount: bigint
-  totalMonths: bigint
-  monthsPaid: bigint
-  startTime: bigint
+  beneficiary: Address
+  paymentAmount: bigint
+  paymentsRemaining: bigint
+  lastPaid: bigint
   active: boolean
 }
 
@@ -20,447 +22,400 @@ interface MyPlansProps {
   account: string | null
 }
 
-// Contract addresses (Base Sepolia testnet)
-const PENSION_CONTRACT_ADDRESS = '0x12123d469941B880331472DF74b8C9414EC17499'
+export default function MyPlans({ language }: MyPlansProps) {
+  const [selectedPlanDetails, setSelectedPlanDetails] = useState<{ [key: string]: Plan }>({})
 
-export default function MyPlans({ language, account }: MyPlansProps) {
-  const [plans, setPlans] = useState<Plan[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [processingPayments, setProcessingPayments] = useState<Set<string>>(new Set())
-  const [paymentStatus, setPaymentStatus] = useState<{[key: string]: string}>({})
-  
+  const { address: account, isConnected } = useAccount()
+
   const translations = {
     es: {
       title: "Mis Planes de Pensión",
-      noPlans: "No tienes planes de pensión creados aún.",
+      noPlans: "No tienes planes de pensión activos.",
       planId: "ID del Plan",
       beneficiary: "Beneficiario",
-      monthlyAmount: "Monto Mensual",
-      totalMonths: "Meses Totales",
-      monthsPaid: "Pagos Recibidos",
-      totalDeposited: "Depósito Total",
-      totalReceived: "Total Recibido",
-      remainingBalance: "Saldo Restante",
-      startTime: "Fecha de Inicio",
+      monthlyPayment: "Pago Mensual",
+      paymentsRemaining: "Pagos Restantes",
+      totalPaid: "Total Pagado",
+      lastPayment: "Último Pago",
+      nextPayment: "Próximo Pago",
       active: "Activo",
-      processPayment: "Retirar Pago Mensual",
-      processing: "Procesando...",
-      paymentSuccess: "Pago retirado exitosamente",
-      paymentError: "Error al retirar el pago",
-      viewPlan: "Ver Plan",
-      loadPlans: "Cargar Planes",
+      inactive: "Completado",
       loadingPlans: "Cargando planes...",
-      nextPayment: "Próximo pago disponible",
-      fundInfo: "Fondo de pensión pre-financiado",
-      fundDescription: "Depositaste el total al crear el plan. Ahora puedes retirar pagos mensuales.",
+      connectWallet: "Conecta tu billetera para ver tus planes",
+      viewOnBaseScan: "Ver en BaseScan",
+      refreshPlans: "Actualizar",
+      contractInfo: "Información del Contrato",
+      contractDescription: "Los pagos son procesados automáticamente por Chainlink Automation cada mes.",
       howItWorks: "Cómo funciona",
-      step1Title: "1. Pre-financiación",
-      step1Desc: "Al crear el plan, depositas el total del monto (mensualidad × meses) en un contrato seguro.",
-      step2Title: "2. Espera el primer mes",
-      step2Desc: "El primer pago solo puede retirarse después de 30 días de la fecha de inicio.",
-      step3Title: "3. Retira mensualmente",
-      step3Desc: "Cada mes, puedes retirar un pago haciendo clic en 'Retirar Pago Mensual'.",
-      step4Title: "4. Automatización (futuro)",
-      step4Desc: "En el futuro, los pagos se retirarán automáticamente sin intervención manual."
+      step1Title: "1. Plan Creado",
+      step1Desc: "Depositaste el total y el contrato guarda tus fondos de forma segura.",
+      step2Title: "2. Pagos Automáticos",
+      step2Desc: "Chainlink Automation procesa pagos mensuales automáticamente.",
+      step3Title: "3. Recibe tus Fondos",
+      step3Desc: "Los pagos se envían a tu wallet cada mes sin intervención manual.",
+      step4Title: "4. Plan Completa",
+      step4Desc: "Cuando todos los pagos se completen, el plan se marca como inactivo.",
+      interval: "Intervalo de Pagos",
+      days: "días",
+      planCompleted: "Este plan se ha completado. Todos los pagos fueron recibidos.",
     },
     en: {
       title: "My Pension Plans",
-      noPlans: "You don't have any pension plans created yet.",
+      noPlans: "You don't have any active pension plans.",
       planId: "Plan ID",
       beneficiary: "Beneficiary",
-      monthlyAmount: "Monthly Amount",
-      totalMonths: "Total Months",
-      monthsPaid: "Payments Received",
-      totalDeposited: "Total Deposit",
-      totalReceived: "Total Received",
-      remainingBalance: "Remaining Balance",
-      startTime: "Start Date",
+      monthlyPayment: "Monthly Payment",
+      paymentsRemaining: "Payments Remaining",
+      totalPaid: "Total Paid",
+      lastPayment: "Last Payment",
+      nextPayment: "Next Payment",
       active: "Active",
-      processPayment: "Withdraw Monthly Payment",
-      processing: "Processing...",
-      paymentSuccess: "Payment withdrawn successfully",
-      paymentError: "Error withdrawing payment",
-      viewPlan: "View Plan",
-      loadPlans: "Load Plans",
+      inactive: "Completed",
       loadingPlans: "Loading plans...",
-      nextPayment: "Next payment available",
-      fundInfo: "Pre-financed pension fund",
-      fundDescription: "You deposited the total amount when creating the plan. Now you can withdraw monthly payments.",
+      connectWallet: "Connect your wallet to view your plans",
+      viewOnBaseScan: "View on BaseScan",
+      refreshPlans: "Refresh",
+      contractInfo: "Contract Information",
+      contractDescription: "Payments are automatically processed by Chainlink Automation every month.",
       howItWorks: "How it works",
-      step1Title: "1. Pre-financing",
-      step1Desc: "When creating the plan, you deposit the total amount (monthly amount × months) into a secure contract.",
-      step2Title: "2. Wait for the first month",
-      step2Desc: "The first payment can only be withdrawn after 30 days from the start date.",
-      step3Title: "3. Withdraw monthly",
-      step3Desc: "Each month, you can withdraw a payment by clicking 'Withdraw Monthly Payment'.",
-      step4Title: "4. Automation (future)",
-      step4Desc: "In the future, payments will be withdrawn automatically without manual intervention."
+      step1Title: "1. Plan Created",
+      step1Desc: "You deposited the total and the contract keeps your funds securely.",
+      step2Title: "2. Automatic Payments",
+      step2Desc: "Chainlink Automation processes monthly payments automatically.",
+      step3Title: "3. Receive Your Funds",
+      step3Desc: "Payments are sent to your wallet each month without manual intervention.",
+      step4Title: "4. Plan Completes",
+      step4Desc: "When all payments are completed, the plan is marked as inactive.",
+      interval: "Payment Interval",
+      days: "days",
+      planCompleted: "This plan has been completed. All payments have been received.",
     }
   }
 
   const t = translations[language]
 
-  // Load user's plans
-  const loadPlans = async () => {
-    if (!account) {
-      setPlans([])
-      setLoading(false)
-      return
-    }
+  // Read all plan IDs
+  const { data: allPlanIds, isLoading: isLoadingIds, refetch: refetchIds } = useReadContract({
+    address: PENSION_CONTRACT_ADDRESS,
+    abi: PENSION_ABI,
+    functionName: 'getPlanIds',
+  })
 
-    setLoading(true)
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      const pensionContract = new ethers.Contract(PENSION_CONTRACT_ADDRESS, vaultAbi, provider)
-      
-      // Get total number of plans
-      const totalPlans = await pensionContract.planCount()
-      console.log("Total plans:", totalPlans.toString())
-      
-      const userPlans: Plan[] = []
-      
-      // Iterate through all plans (from 1 to planCount) to find ones belonging to the user
-      for (let i = 1n; i <= totalPlans; i++) {
-        try {
-          const plan = await pensionContract.plans(i)
-          console.log(`Plan ${i}:`, plan)
-          console.log(`Beneficiary: ${plan.beneficiary.toLowerCase()}`)
-          console.log(`Account: ${account.toLowerCase()}`)
-          console.log(`Match: ${plan.beneficiary.toLowerCase() === account.toLowerCase()}`)
-          
-          // Check if the plan is initialized (beneficiary is not zero address)
-          const zeroAddress = "0x0000000000000000000000000000000000000000";
-          if (plan.beneficiary.toLowerCase() === zeroAddress) {
-            console.log(`Plan ${i} is not initialized (zero address)`)
-            continue;
-          }
-          
-          // Check if the beneficiary matches the connected account
-          if (plan.beneficiary.toLowerCase() === account.toLowerCase()) {
-            userPlans.push({
-              id: i,
-              beneficiary: plan.beneficiary,
-              monthlyAmount: plan.monthlyAmount,
-              totalMonths: plan.totalMonths,
-              monthsPaid: plan.monthsPaid,
-              startTime: plan.startTime,
-              active: plan.active
-            })
-          }
-        } catch (error) {
-          console.warn(`Error fetching plan ${i}:`, error)
+  // Read interval
+  const { data: intervalData } = useReadContract({
+    address: PENSION_CONTRACT_ADDRESS,
+    abi: PENSION_ABI,
+    functionName: 'interval',
+  })
+
+  const interval = intervalData ? Number(intervalData as bigint) : 0
+  const intervalDays = Math.floor(interval / 86400) // Convert seconds to days
+
+  // Filter plan IDs to get only user's plans
+  const userPlanIds = allPlanIds && account
+    ? (allPlanIds as bigint[]).filter((id) => id > 0n)
+    : []
+
+  // Prepare contracts to read multiple plans at once
+  const planContracts = userPlanIds.map((planId) => ({
+    address: PENSION_CONTRACT_ADDRESS,
+    abi: PENSION_ABI,
+    functionName: 'getPlan' as const,
+    args: [planId],
+  }))
+
+  const { data: plansData, isLoading: isLoadingPlans, refetch: refetchPlans } = useReadContracts({
+    contracts: planContracts,
+  })
+
+  // Parse and filter user's plans
+  const userPlans: { id: bigint; plan: Plan }[] = []
+
+  if (plansData && account) {
+    plansData.forEach((result, index) => {
+      if (result.status === 'success' && result.result) {
+        const [beneficiary, paymentAmount, paymentsRemaining, lastPaid, active] = result.result as [Address, bigint, bigint, bigint, boolean]
+
+        // Only include plans where user is the beneficiary
+        if (beneficiary.toLowerCase() === account.toLowerCase()) {
+          userPlans.push({
+            id: userPlanIds[index],
+            plan: {
+              id: userPlanIds[index],
+              beneficiary,
+              paymentAmount,
+              paymentsRemaining,
+              lastPaid,
+              active,
+            },
+          })
         }
       }
-      
-      setPlans(userPlans)
-    } catch (error) {
-      console.error("Error loading plans:", error)
-    } finally {
-      setLoading(false)
-    }
+    })
   }
 
-  // Process payment for a plan
-  const processPayment = async (planId: bigint) => {
-    if (!account) return
-    
-    const planIdStr = planId.toString()
-    setProcessingPayments(prev => new Set(prev).add(planIdStr))
-    setPaymentStatus(prev => ({ ...prev, [planIdStr]: '' }))
-    
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      const signer = await provider.getSigner()
-      const pensionContract = new ethers.Contract(PENSION_CONTRACT_ADDRESS, vaultAbi, signer)
-      
-      // Send transaction to process payment
-      const tx = await pensionContract.processPayment(planId)
-      setPaymentStatus(prev => ({ ...prev, [planIdStr]: t.processing }))
-      
-      // Wait for transaction confirmation
-      await tx.wait()
-      
-      setPaymentStatus(prev => ({ ...prev, [planIdStr]: t.paymentSuccess }))
-      
-      // Reload plans to update monthsPaid
-      setTimeout(() => {
-        loadPlans()
-        setProcessingPayments(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(planIdStr)
-          return newSet
-        })
-      }, 2000)
-    } catch (error) {
-      console.error("Error processing payment:", error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      setPaymentStatus(prev => ({ ...prev, [planIdStr]: `${t.paymentError}: ${errorMessage}` }))
-      
-      setTimeout(() => {
-        setProcessingPayments(prev => {
-          const newSet = new Set(prev)
-          newSet.delete(planIdStr)
-          return newSet
-        })
-      }, 3000)
-    }
+  const isLoading = isLoadingIds || isLoadingPlans
+
+  // Format currency
+  const formatCurrency = (amount: bigint) => {
+    return formatUnits(amount, 6) // USDC has 6 decimals
   }
 
   // Format date
   const formatDate = (timestamp: bigint) => {
+    if (timestamp === 0n) return 'N/A'
     const date = new Date(Number(timestamp) * 1000)
-    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US')
-  }
-
-  // Format currency
-  const formatCurrency = (amount: bigint) => {
-    return ethers.formatUnits(amount, 6) // USDT has 6 decimals
+    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
   // Calculate next payment date
-  const getNextPaymentDate = (startTime: bigint, monthsPaid: bigint) => {
-    const startDate = new Date(Number(startTime) * 1000)
-    // Add (monthsPaid + 1) months to get the next payment date
-    startDate.setMonth(startDate.getMonth() + Number(monthsPaid) + 1)
-    return startDate.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US')
+  const getNextPaymentDate = (lastPaid: bigint) => {
+    if (lastPaid === 0n) return 'N/A'
+    const nextPaymentTimestamp = Number(lastPaid) + interval
+    const date = new Date(nextPaymentTimestamp * 1000)
+    return date.toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
-  // Calculate total deposited amount
-  const getTotalDeposited = (monthlyAmount: bigint, totalMonths: bigint) => {
-    return monthlyAmount * totalMonths
+  // Calculate total paid
+  const calculateTotalPaid = (paymentAmount: bigint, paymentsRemaining: bigint, totalPayments: bigint) => {
+    const paidPayments = totalPayments - paymentsRemaining
+    return paymentAmount * paidPayments
   }
 
-  // Calculate total received amount
-  const getTotalReceived = (monthlyAmount: bigint, monthsPaid: bigint) => {
-    return monthlyAmount * monthsPaid
+  const handleRefresh = () => {
+    refetchIds()
+    refetchPlans()
   }
-
-  // Calculate remaining balance
-  const getRemainingBalance = (monthlyAmount: bigint, totalMonths: bigint, monthsPaid: bigint) => {
-    const totalDeposited = getTotalDeposited(monthlyAmount, totalMonths)
-    const totalReceived = getTotalReceived(monthlyAmount, monthsPaid)
-    return totalDeposited - totalReceived
-  }
-
-  // Load plans when account changes
-  useEffect(() => {
-    loadPlans()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account])
 
   return (
-    <div className="flex-1 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{t.title}</h1>
-          <p className="text-lg text-gray-600">
-            {account 
-              ? `${t.viewPlan} ${account.substring(0, 6)}...${account.substring(38)}` 
-              : t.noPlans}
-          </p>
+    <div className="flex-1 p-4 md:p-6 bg-gray-50">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t.title}</h1>
+            {account && (
+              <p className="text-sm text-gray-600">
+                {account.substring(0, 6)}...{account.substring(38)}
+              </p>
+            )}
+          </div>
+          {isConnected && (
+            <Button
+              onClick={handleRefresh}
+              variant="outline"
+              className="mt-4 md:mt-0"
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              {t.refreshPlans}
+            </Button>
+          )}
         </div>
 
-        {loading ? (
+        {/* Loading State */}
+        {isLoading && (
           <div className="text-center py-12">
+            <Loader2 className="h-12 w-12 text-[#27F5A9] mx-auto mb-4 animate-spin" />
             <p className="text-gray-600">{t.loadingPlans}</p>
           </div>
-        ) : plans.length === 0 ? (
+        )}
+
+        {/* Not Connected State */}
+        {!isConnected && !isLoading && (
           <Card className="text-center py-12">
             <CardContent>
-              <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noPlans}</h3>
-              <p className="text-gray-500 mb-4">
-                {account 
-                  ? t.noPlans 
-                  : "Conecta tu billetera para ver tus planes de pensión."}
-              </p>
-              {!account && (
-                <Button onClick={() => window.dispatchEvent(new Event('connect-wallet'))}>
-                  Conectar Billetera
-                </Button>
-              )}
+              <Wallet className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t.connectWallet}</h3>
             </CardContent>
           </Card>
-        ) : (
+        )}
+
+        {/* No Plans State */}
+        {isConnected && !isLoading && userPlans.length === 0 && (
+          <Card className="text-center py-12">
+            <CardContent>
+              <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noPlans}</h3>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Plans List */}
+        {isConnected && !isLoading && userPlans.length > 0 && (
           <div className="space-y-6">
-            {plans.map((plan) => {
-              const totalDeposited = getTotalDeposited(plan.monthlyAmount, plan.totalMonths)
-              const totalReceived = getTotalReceived(plan.monthlyAmount, plan.monthsPaid)
-              const remainingBalance = getRemainingBalance(plan.monthlyAmount, plan.totalMonths, plan.monthsPaid)
-              
+            {/* Contract Info Card */}
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="flex items-center text-blue-900">
+                  <Info className="h-5 w-5 mr-2" />
+                  {t.contractInfo}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <p className="text-sm text-blue-800">{t.contractDescription}</p>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-semibold text-blue-900">{t.interval}:</span>
+                  <Badge variant="secondary">{intervalDays} {t.days}</Badge>
+                </div>
+                <a
+                  href={`https://basescan.org/address/${PENSION_CONTRACT_ADDRESS}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                >
+                  {t.viewOnBaseScan}
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </CardContent>
+            </Card>
+
+            {/* Plans */}
+            {userPlans.map(({ id, plan }) => {
+              // Estimate total payments (we don't have this from contract, so we estimate)
+              const estimatedTotalPayments = plan.paymentsRemaining + 1n // At least 1 payment
+              const totalPaid = calculateTotalPaid(plan.paymentAmount, plan.paymentsRemaining, estimatedTotalPayments)
+
               return (
-                <Card key={plan.id.toString()}>
-                  <CardHeader>
-                    <CardTitle className="flex justify-between items-center">
-                      <span>Plan #{plan.id.toString()}</span>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                        plan.active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
+                <Card key={id.toString()} className="border-gray-200 shadow-lg">
+                  <CardHeader className="bg-gradient-to-r from-gray-50 to-white">
+                    <CardTitle className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                      <span className="text-xl">Plan #{id.toString()}</span>
+                      <Badge
+                        variant={plan.active ? "default" : "secondary"}
+                        className={plan.active ? "bg-green-600" : "bg-gray-400"}
+                      >
                         {plan.active ? (
                           <>
                             <CheckCircle className="h-4 w-4 mr-1" />
                             {t.active}
                           </>
-                        ) : 'Inactivo'}
-                      </span>
+                        ) : (
+                          t.inactive
+                        )}
+                      </Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Fund Info */}
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <div className="flex items-center mb-2">
-                        <Wallet className="h-5 w-5 text-blue-600 mr-2" />
-                        <h3 className="font-semibold text-blue-800">{t.fundInfo}</h3>
+                  <CardContent className="space-y-6 pt-6">
+                    {/* Plan Completed Message */}
+                    {!plan.active && plan.paymentsRemaining === 0n && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-green-800">{t.planCompleted}</p>
+                        </div>
                       </div>
-                      <p className="text-sm text-blue-700">{t.fundDescription}</p>
-                    </div>
-                    
-                    {/* Summary */}
+                    )}
+
+                    {/* Payment Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-500">{t.totalDeposited}</p>
-                        <p className="text-xl font-bold text-gray-800">${formatCurrency(totalDeposited)} USDT</p>
+                      <div className="bg-[#27F5A9]/10 p-4 rounded-xl border border-[#27F5A9]/30">
+                        <div className="flex items-center gap-2 mb-1">
+                          <DollarSign className="h-4 w-4 text-[#27F5A9]" />
+                          <p className="text-sm text-gray-600">{t.monthlyPayment}</p>
+                        </div>
+                        <p className="text-2xl font-bold text-[#27F5A9]">
+                          ${formatCurrency(plan.paymentAmount)}
+                        </p>
                       </div>
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-500">{t.totalReceived}</p>
-                        <p className="text-xl font-bold text-green-800">${formatCurrency(totalReceived)} USDT</p>
+
+                      <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Clock className="h-4 w-4 text-blue-600" />
+                          <p className="text-sm text-gray-600">{t.paymentsRemaining}</p>
+                        </div>
+                        <p className="text-2xl font-bold text-blue-900">
+                          {plan.paymentsRemaining.toString()}
+                        </p>
                       </div>
-                      <div className="bg-orange-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-500">{t.remainingBalance}</p>
-                        <p className="text-xl font-bold text-orange-800">${formatCurrency(remainingBalance)} USDT</p>
+
+                      <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+                        <div className="flex items-center gap-2 mb-1">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <p className="text-sm text-gray-600">{t.totalPaid}</p>
+                        </div>
+                        <p className="text-2xl font-bold text-green-900">
+                          ${formatCurrency(totalPaid)}
+                        </p>
                       </div>
                     </div>
-                    
-                    {/* Plan Details */}
+
+                    {/* Payment Timeline */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-500">{t.beneficiary}</p>
-                        <p className="font-medium">
-                          {plan.beneficiary.substring(0, 6)}...{plan.beneficiary.substring(38)}
-                        </p>
+                      <div className="p-4 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-600 mb-1">{t.lastPayment}</p>
+                        <p className="font-semibold text-gray-900">{formatDate(plan.lastPaid)}</p>
                       </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">{t.monthlyAmount}</p>
-                        <p className="font-medium">${formatCurrency(plan.monthlyAmount)} USDT</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">{t.totalMonths}</p>
-                        <p className="font-medium">{plan.totalMonths.toString()} meses</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">{t.monthsPaid}</p>
-                        <p className="font-medium">{plan.monthsPaid.toString()} de {plan.totalMonths.toString()}</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">{t.startTime}</p>
-                        <p className="font-medium">{formatDate(plan.startTime)}</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-sm text-gray-500">{t.nextPayment}</p>
-                        <p className="font-medium">
-                          {getNextPaymentDate(plan.startTime, plan.monthsPaid)}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Action Button */}
-                    <div className="pt-4">
-                      <Button 
-                        onClick={() => processPayment(plan.id)}
-                        disabled={processingPayments.has(plan.id.toString()) || !plan.active}
-                        className="w-full"
-                      >
-                        {processingPayments.has(plan.id.toString()) ? (
-                          <>
-                            <Clock className="mr-2 h-4 w-4 animate-spin" />
-                            {t.processing}
-                          </>
-                        ) : (
-                          <>
-                            <DollarSign className="mr-2 h-4 w-4" />
-                            {t.processPayment}
-                          </>
-                        )}
-                      </Button>
-                      
-                      {paymentStatus[plan.id.toString()] && (
-                        <p className={`mt-2 text-center text-sm ${
-                          paymentStatus[plan.id.toString()] === t.paymentSuccess 
-                            ? 'text-green-600' 
-                            : 'text-red-600'
-                        }`}>
-                          {paymentStatus[plan.id.toString()]}
-                        </p>
+
+                      {plan.active && plan.paymentsRemaining > 0n && (
+                        <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                          <p className="text-sm text-gray-600 mb-1">{t.nextPayment}</p>
+                          <p className="font-semibold text-orange-900">{getNextPaymentDate(plan.lastPaid)}</p>
+                        </div>
                       )}
+                    </div>
+
+                    {/* Beneficiary Info */}
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">{t.beneficiary}</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm font-mono bg-white px-2 py-1 rounded border">
+                          {plan.beneficiary}
+                        </code>
+                        <a
+                          href={`https://basescan.org/address/${plan.beneficiary}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               )
             })}
-            
-            {/* How it works section */}
-            <Card className="mt-8">
+
+            {/* How it Works */}
+            <Card className="border-gray-200">
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className="flex items-center text-gray-900">
                   <Info className="h-5 w-5 mr-2 text-blue-600" />
                   {t.howItWorks}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-1">
-                    <span className="text-blue-800 text-sm font-bold">1</span>
+                {[
+                  { title: t.step1Title, desc: t.step1Desc },
+                  { title: t.step2Title, desc: t.step2Desc },
+                  { title: t.step3Title, desc: t.step3Desc },
+                  { title: t.step4Title, desc: t.step4Desc },
+                ].map((step, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="flex-shrink-0 h-8 w-8 rounded-full bg-[#27F5A9] flex items-center justify-center">
+                      <span className="text-[#1a1a1a] text-sm font-bold">{index + 1}</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">{step.title}</h3>
+                      <p className="text-sm text-gray-600">{step.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{t.step1Title}</h3>
-                    <p className="text-gray-600">{t.step1Desc}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-1">
-                    <span className="text-blue-800 text-sm font-bold">2</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{t.step2Title}</h3>
-                    <p className="text-gray-600">{t.step2Desc}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-1">
-                    <span className="text-blue-800 text-sm font-bold">3</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{t.step3Title}</h3>
-                    <p className="text-gray-600">{t.step3Desc}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center mr-3 mt-1">
-                    <span className="text-blue-800 text-sm font-bold">4</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{t.step4Title}</h3>
-                    <p className="text-gray-600">{t.step4Desc}</p>
-                  </div>
-                </div>
+                ))}
               </CardContent>
             </Card>
-            
-            <div className="text-center pt-4">
-              <Button variant="outline" onClick={loadPlans}>
-                {t.loadPlans}
-              </Button>
-            </div>
           </div>
         )}
       </div>

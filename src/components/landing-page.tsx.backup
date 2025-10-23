@@ -1,48 +1,17 @@
-import { useState } from 'react'
-import { Calculator, ArrowRight } from 'lucide-react'
-
 interface LandingPageProps {
   onEnterApp: () => void
   language: 'es' | 'en'
 }
 
 export default function LandingPage({ onEnterApp, language }: LandingPageProps) {
-  const [calcMonthly, setCalcMonthly] = useState<string>("1000")
-  const [calcMonths, setCalcMonths] = useState<number>(12)
-
   const translations = {
     es: {
       hero: {
         titlePart1: "Asegura Tu Futuro",
         titlePart2: " El Sistema de Pensiones No Expropiable",
         subtitle: "Un camino descentralizado, transparente y simple hacia la seguridad en el retiro, impulsado por tecnología Web3 de vanguardia.",
-        cta: "Comenzar Ahora",
+        cta: "Explorar Planes",
         trust: "Asegurado por Contratos Inteligentes"
-      },
-      calculator: {
-        title: "Calcula Tu Pensión",
-        monthly: "Pensión mensual deseada",
-        duration: "Duración (meses)",
-        deposit: "Necesitas depositar",
-        receive: "Recibirás en total",
-        cta: "Crear Mi Plan"
-      },
-      howItWorks: {
-        title: "Cómo Funciona",
-        subtitle: "Simple y transparente en 3 pasos",
-        step1: {
-          title: "Conecta Tu Wallet",
-          description: "Conecta tu billetera Web3 en segundos. Sin registro, sin KYC."
-        },
-        step2: {
-          title: "Deposita Tu Capital",
-          description: "Deposita USDC una sola vez. El contrato guarda tus fondos de forma segura."
-        },
-        step3: {
-          title: "Recibe Pagos Automáticos",
-          description: "Chainlink Automation procesa tus pagos mensuales automáticamente."
-        },
-        time: "Todo el proceso toma menos de 5 minutos"
       },
       pillars: {
         title: "¿Por Qué PensionFi? El Poder de la Descentralización",
@@ -75,33 +44,8 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
         titlePart1: "Secure Your Future:",
         titlePart2: " The Non-Expropriable Pension System",
         subtitle: "A decentralized, transparent, and simple path to retirement security, powered by cutting-edge Web3 technology.",
-        cta: "Get Started",
+        cta: "Explore Plans",
         trust: "Secured by Audited Smart Contracts"
-      },
-      calculator: {
-        title: "Calculate Your Pension",
-        monthly: "Desired monthly pension",
-        duration: "Duration (months)",
-        deposit: "You need to deposit",
-        receive: "You'll receive in total",
-        cta: "Create My Plan"
-      },
-      howItWorks: {
-        title: "How It Works",
-        subtitle: "Simple and transparent in 3 steps",
-        step1: {
-          title: "Connect Your Wallet",
-          description: "Connect your Web3 wallet in seconds. No signup, no KYC."
-        },
-        step2: {
-          title: "Deposit Your Capital",
-          description: "Deposit USDC once. The contract keeps your funds securely."
-        },
-        step3: {
-          title: "Receive Automatic Payments",
-          description: "Chainlink Automation processes your monthly payments automatically."
-        },
-        time: "The entire process takes less than 5 minutes"
       },
       pillars: {
         title: "Why PensionFi? The Power of Decentralization",
@@ -132,17 +76,6 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
   }
 
   const t = translations[language]
-
-  // Calculate deposit based on contract logic
-  const calculateDeposit = (monthly: number, months: number): number => {
-    const totalToReceive = monthly * months
-    const totalWithFee = (totalToReceive * 100) / 110 // 10% fee
-    return Math.floor(totalWithFee / 100) * 100 // Truncate to 2 decimals
-  }
-
-  const monthlyAmount = parseFloat(calcMonthly) || 0
-  const totalDeposit = calculateDeposit(monthlyAmount, calcMonths)
-  const totalReceive = monthlyAmount * calcMonths
 
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
@@ -202,141 +135,14 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
         </div>
       </section>
 
-      {/* Mini Calculator Section */}
-      <section className="relative py-32 px-8 bg-gradient-to-b from-[#1a1a1a] to-[#242424] overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#27F5A9] to-transparent opacity-30"></div>
-
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="text-center mb-12 mt-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-[#27F5A9]/10 rounded-xl mb-4">
-              <Calculator className="w-8 h-8 text-[#27F5A9]" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">{t.calculator.title}</h2>
-          </div>
-
-          <div className="bg-[#2a2a2a] rounded-2xl p-8 border border-gray-700 shadow-2xl">
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-              {/* Monthly Amount Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {t.calculator.monthly}
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
-                  <input
-                    type="number"
-                    value={calcMonthly}
-                    onChange={(e) => setCalcMonthly(e.target.value)}
-                    className="w-full bg-[#1a1a1a] border border-gray-600 rounded-lg px-4 py-3 pl-8 text-white focus:outline-none focus:border-[#27F5A9] focus:ring-1 focus:ring-[#27F5A9]"
-                    placeholder="1000"
-                    min="10"
-                  />
-                </div>
-              </div>
-
-              {/* Duration Slider */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {t.calculator.duration}
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="range"
-                    value={calcMonths}
-                    onChange={(e) => setCalcMonths(parseInt(e.target.value))}
-                    min="1"
-                    max="60"
-                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#27F5A9]"
-                  />
-                  <span className="text-2xl font-bold text-[#27F5A9] min-w-[60px] text-right">
-                    {calcMonths}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Results */}
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
-                <p className="text-sm text-gray-400 mb-2">{t.calculator.deposit}</p>
-                <p className="text-3xl font-bold text-[#27F5A9]">
-                  ${totalDeposit.toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
-                <p className="text-sm text-gray-400 mb-2">{t.calculator.receive}</p>
-                <p className="text-3xl font-bold text-[#27F5A9]">
-                  ${totalReceive.toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={onEnterApp}
-              className="w-full bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a] px-8 py-4 rounded-lg font-bold text-lg transition-all duration-200 hover:shadow-xl hover:shadow-[#27F5A9]/30 flex items-center justify-center gap-2"
-            >
-              {t.calculator.cta}
-              <ArrowRight className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="relative py-32 px-8 bg-gradient-to-b from-[#242424] to-[#1a1a1a] overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#27F5A9] to-transparent opacity-30"></div>
-
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-center mb-16 mt-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              {t.howItWorks.title}
-            </h2>
-            <p className="text-lg text-gray-400">{t.howItWorks.subtitle}</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            {[
-              { num: "1", ...t.howItWorks.step1 },
-              { num: "2", ...t.howItWorks.step2 },
-              { num: "3", ...t.howItWorks.step3 },
-            ].map((step, index) => (
-              <div key={index} className="relative">
-                {/* Connector Line (hidden on mobile) */}
-                {index < 2 && (
-                  <div className="hidden md:block absolute top-12 left-full w-full h-0.5 bg-gradient-to-r from-[#27F5A9] to-transparent opacity-30 z-0"></div>
-                )}
-
-                <div className="relative bg-[#2a2a2a] rounded-2xl p-8 border border-gray-700 hover:border-[#27F5A9] transition-all duration-300 h-full">
-                  <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center bg-[#27F5A9] rounded-full text-[#1a1a1a] font-bold text-2xl">
-                    {step.num}
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-4 text-center">
-                    {step.title}
-                  </h3>
-                  <p className="text-gray-400 leading-relaxed text-center">
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-[#27F5A9]/10 border border-[#27F5A9]/30 rounded-full px-6 py-3">
-              <span className="text-[#27F5A9] font-semibold">{t.howItWorks.time}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Core Pillars Section */}
-      <section className="relative py-32 px-8 bg-gradient-to-b from-[#1a1a1a] to-[#242424] overflow-hidden">
+      <section className="relative py-24 px-8 bg-gradient-to-b from-[#242424] to-[#1a1a1a] overflow-hidden">
         {/* Decorative Elements */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#27F5A9] to-transparent opacity-30"></div>
         <div className="absolute top-10 right-10 w-32 h-32 border border-[#27F5A9] opacity-10 rounded-full"></div>
         <div className="absolute bottom-10 left-10 w-24 h-24 border border-white opacity-5 rounded-full"></div>
-
-        <div className="max-w-6xl mx-auto relative z-10 mt-8">
+        
+        <div className="max-w-6xl mx-auto relative z-10">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">
             <span className="text-white">¿Por Qué </span>
             <span className="text-[#27F5A9]">PensionFi</span>
@@ -397,16 +203,16 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
       </section>
 
       {/* Conversion Section */}
-      <section className="relative py-32 px-8 bg-[#1a1a1a] overflow-hidden">
+      <section className="relative py-24 px-8 bg-[#1a1a1a] overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#27F5A9] rounded-full filter blur-[150px] opacity-5"></div>
           <div className="absolute top-0 left-0 w-full h-full bg-grid-pattern opacity-5"></div>
         </div>
-
+        
         <div className="max-w-4xl mx-auto text-center relative z-10">
           {/* Decorative line */}
-          <div className="w-20 h-1 bg-gradient-to-r from-transparent via-[#27F5A9] to-transparent mx-auto mb-8 mt-8"></div>
+          <div className="w-20 h-1 bg-gradient-to-r from-transparent via-[#27F5A9] to-transparent mx-auto mb-8"></div>
           
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             <span className="text-white">¿Listo para </span>

@@ -1,18 +1,19 @@
 interface HomeSectionProps {
   language: 'es' | 'en'
+  onNavigate: (section: string) => void
 }
 
-export default function HomeSection({ language }: HomeSectionProps) {
+export default function HomeSection({ language, onNavigate }: HomeSectionProps) {
   const translations = {
     es: {
       title: "Pensiones hechas simples",
       description: "Un sistema de pensiones descentralizado, simple y no expropiable",
-      cta: "Jubílate hoy"
+      cta: "Planifica tu Retiro"
     },
     en: {
       title: "Pensions made simple",
       description: "A descentralized, simple and non-expropiable pension system",
-      cta: "Retire today"
+      cta: "Plan Your Retirement"
     }
   }
 
@@ -26,14 +27,15 @@ export default function HomeSection({ language }: HomeSectionProps) {
         <h1 className="text-6xl font-bold text-gray-900 mb-6 max-w-4xl">
           {t.title}
         </h1>
-        
+
         <p className="text-lg text-gray-600 mb-12 max-w-2xl">
           {t.description}
         </p>
 
-        {/* CTA Button */}
-        <button 
-          className="bg-[#27F5A9] hover:bg-[#20e094] text-white px-8 py-3 rounded-lg font-medium text-base transition-all duration-200 hover:shadow-lg"
+        {/* CTA Button - Now functional! */}
+        <button
+          onClick={() => onNavigate('retire')}
+          className="bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a] px-8 py-3 rounded-lg font-semibold text-base transition-all duration-200 hover:shadow-lg hover:shadow-[#27F5A9]/30"
         >
           {t.cta}
         </button>
