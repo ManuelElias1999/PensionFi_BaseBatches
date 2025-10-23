@@ -244,8 +244,8 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
                     type="range"
                     value={calcMonths}
                     onChange={(e) => setCalcMonths(parseInt(e.target.value))}
-                    min="1"
-                    max="60"
+                    min="12"
+                    max="120"
                     className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#27F5A9]"
                   />
                   <span className="text-2xl font-bold text-[#27F5A9] min-w-[60px] text-right">

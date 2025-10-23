@@ -85,7 +85,7 @@ export function parseContractError(error: any): UserFriendlyError {
     return {
       title: 'Invalid Duration',
       message:
-        'The total duration of your plan is outside the allowed range (1-60 months).',
+        'The total duration of your plan is outside the allowed range (12-120 months).',
       action: 'Adjust the number of months',
     };
   }

@@ -18,8 +18,8 @@ interface PensionCalculatorProps {
 // Validation constraints
 const MIN_MONTHLY_PENSION = 10 // $10 USDC
 const MAX_MONTHLY_PENSION = 1000000 // $1M USDC
-const MIN_MONTHS = 1
-const MAX_MONTHS = 60 // 5 years max
+const MIN_MONTHS = 12 // Minimum 12 months (1 year)
+const MAX_MONTHS = 120 // Maximum 120 months (10 years)
 
 type TransactionStep = 'idle' | 'approving' | 'approved' | 'creating' | 'success' | 'error'
 
