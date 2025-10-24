@@ -16,7 +16,7 @@ interface PensionCalculatorProps {
 }
 
 // Validation constraints
-const MIN_MONTHLY_PENSION = 1 // $1 USDC
+const MIN_MONTHLY_PENSION = 0.1 // $0.1 USDC (10 centavos)
 const MAX_MONTHLY_PENSION = 1000000 // $1M USDC
 const MIN_YEARS = 1 // Minimum 1 year
 const MAX_YEARS = 10 // Maximum 10 years
@@ -293,6 +293,21 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
     const monthlyAmount = parseUnits(desiredPension, 6)
     const monthsCount = BigInt(years[0] * 12) // Convert years to months for contract
 
+    // CONSOLE LOG - Ver valores que se envían al contrato
+    console.log('=== VALORES ENVIADOS AL CONTRATO ===')
+    console.log('Contrato:', PENSION_CONTRACT_ADDRESS)
+    console.log('Función:', 'payPension')
+    console.log('---')
+    console.log('ARG 1 - monthlyAmount (wei):', monthlyAmount.toString())
+    console.log('ARG 1 - monthlyAmount (USDC):', formatUnits(monthlyAmount, 6))
+    console.log('---')
+    console.log('ARG 2 - monthsCount:', monthsCount.toString())
+    console.log('ARG 2 - monthsCount (años):', (Number(monthsCount) / 12).toString())
+    console.log('---')
+    console.log('ARG 3 - totalDeposit (wei):', totalDeposit.toString())
+    console.log('ARG 3 - totalDeposit (USDC):', formatUnits(totalDeposit, 6))
+    console.log('====================================')
+
     setErrorDetails(null)
     payPension({
       address: PENSION_CONTRACT_ADDRESS,
@@ -447,11 +462,11 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
                     </div>
                     <div className="text-xs text-blue-700 pl-2">
                       Balance: {formatCurrency(parseFloat(usdcBalance))} USDC
-                      {totalDeposit && ` | Required: ${formatCurrency(parseFloat(formatUnits(totalDeposit, 6)))} USDC`}
+                      {totalDeposit ? ` | Required: ${formatCurrency(parseFloat(formatUnits(totalDeposit, 6)))} USDC` : ''}
                     </div>
 
                     {/* Min Deposit Check */}
-                    {minDeposit && totalDeposit && (
+                    {minDeposit !== undefined && totalDeposit !== null ? (
                       <>
                         <div className="flex items-center justify-between">
                           <span className="text-blue-800">Min Deposit</span>
@@ -462,10 +477,10 @@ export default function PensionCalculator({ language }: PensionCalculatorProps) 
                           )}
                         </div>
                         <div className="text-xs text-blue-700 pl-2">
-                          Contract Min: {formatCurrency(parseFloat(formatUnits(minDeposit as bigint, 6)))} USDC
+                          Contract Min: {minDeposit ? formatCurrency(parseFloat(formatUnits(minDeposit as bigint, 6))) : '0'} USDC
                         </div>
                       </>
-                    )}
+                    ) : null}
 
                     {/* Approval Check */}
                     <div className="flex items-center justify-between">

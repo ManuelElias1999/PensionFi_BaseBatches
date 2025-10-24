@@ -1,7 +1,7 @@
 // PensionFI Contract Configuration
-// Mainnet Base - Deployed at 0x4Fa29a8c7D5CA5Ac1882Fd95D7Be2aae0d578e5a
+// Mainnet Base - Deployed at 0x4bAa32EB307eF535bf386CF66faaEd6Ed33af775
 
-export const PENSION_CONTRACT_ADDRESS = '0x4Fa29a8c7D5CA5Ac1882Fd95D7Be2aae0d578e5a';
+export const PENSION_CONTRACT_ADDRESS = '0x4bAa32EB307eF535bf386CF66faaEd6Ed33af775';
 
 // USDC on Base Mainnet
 export const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
