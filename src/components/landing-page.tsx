@@ -64,7 +64,7 @@ export default function LandingPage({ onEnterApp, language, setLanguage }: Landi
     },
     en: {
       hero: {
-        titlePart1: "Secure Your Future:",
+        titlePart1: "Secure Your Future",
         titlePart2: " The Non-Expropriable Pension System",
         subtitle: "A decentralized, transparent, and simple path to retirement security, powered by cutting-edge Web3 technology.",
         cta: "Get Started",
