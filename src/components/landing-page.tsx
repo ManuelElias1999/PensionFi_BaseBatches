@@ -1,14 +1,12 @@
-import { useState } from 'react'
-import { Calculator, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 interface LandingPageProps {
   onEnterApp: () => void
   language: 'es' | 'en'
+  setLanguage: (lang: 'es' | 'en') => void
 }
 
-export default function LandingPage({ onEnterApp, language }: LandingPageProps) {
-  const [calcMonthly, setCalcMonthly] = useState<string>("1000")
-  const [calcYears, setCalcYears] = useState<number>(1)
+export default function LandingPage({ onEnterApp, language, setLanguage }: LandingPageProps) {
 
   const translations = {
     es: {
@@ -19,14 +17,7 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
         cta: "Comenzar Ahora",
         trust: "Asegurado por Contratos Inteligentes"
       },
-      calculator: {
-        title: "Calcula Tu Pensión",
-        monthly: "Pensión mensual deseada",
-        duration: "Duración (años)",
-        deposit: "Necesitas depositar",
-        receive: "Recibirás en total",
-        cta: "Crear Mi Plan"
-      },
+
       howItWorks: {
         title: "Cómo Funciona",
         subtitle: "Simple y transparente en 3 pasos",
@@ -78,14 +69,7 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
         cta: "Get Started",
         trust: "Secured by Audited Smart Contracts"
       },
-      calculator: {
-        title: "Calculate Your Pension",
-        monthly: "Desired monthly pension",
-        duration: "Duration (years)",
-        deposit: "You need to deposit",
-        receive: "You'll receive in total",
-        cta: "Create My Plan"
-      },
+
       howItWorks: {
         title: "How It Works",
         subtitle: "Simple and transparent in 3 steps",
@@ -133,27 +117,6 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
 
   const t = translations[language]
 
-  // Calculate deposit based on contract logic (matching Solidity exactly)
-  const calculateDeposit = (monthly: number, months: number): number => {
-    if (monthly <= 0 || months <= 0) return 0
-
-    // Work in wei (USDC has 6 decimals) to match contract logic
-    const monthlyAmountWei = BigInt(Math.floor(monthly * 1e6))
-    const monthsCountBigInt = BigInt(months)
-    const totalToReceiveWei = monthlyAmountWei * monthsCountBigInt
-    const totalAmountWei = (totalToReceiveWei * 100n) / 110n // Integer division
-    const truncatedWei = (totalAmountWei / 100n) * 100n // Truncate last 2 digits
-
-    // Convert back to USDC (regular number)
-    return Number(truncatedWei) / 1e6
-  }
-
-  const monthlyAmount = parseFloat(calcMonthly) || 0
-  const monthsCount = calcYears * 12 // Convert years to months
-  const totalDeposit = calculateDeposit(monthlyAmount, monthsCount)
-  // Total to receive is deposit * 1.1 (10% fee)
-  const totalReceive = totalDeposit * 1.1
-
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
       {/* Hero Section */}
@@ -181,12 +144,39 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
             <span className="text-3xl font-bold text-white">Pension</span>
             <span className="text-3xl font-bold text-[#27F5A9]">Fi</span>
           </div>
-          <button 
-            onClick={onEnterApp}
-            className="bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a] px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 hover:shadow-lg hover:shadow-[#27F5A9]/20"
-          >
-            {t.conversion.cta}
-          </button>
+          
+          <div className="flex items-center gap-4">
+            {/* Language Toggle */}
+            <div className="relative inline-flex items-center bg-[#27F5A9] rounded-full p-1">
+              <button
+                onClick={() => setLanguage('en')}
+                className={`relative z-10 px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 ${
+                  language === 'en'
+                    ? 'bg-white text-[#1a1a1a] shadow-md'
+                    : 'text-[#1a1a1a] hover:text-white'
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => setLanguage('es')}
+                className={`relative z-10 px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 ${
+                  language === 'es'
+                    ? 'bg-white text-[#1a1a1a] shadow-md'
+                    : 'text-[#1a1a1a] hover:text-white'
+                }`}
+              >
+                Español
+              </button>
+            </div>
+
+            <button 
+              onClick={onEnterApp}
+              className="bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a] px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 hover:shadow-lg hover:shadow-[#27F5A9]/20"
+            >
+              {t.conversion.cta}
+            </button>
+          </div>
         </nav>
 
         {/* Hero Content */}
@@ -212,85 +202,7 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
         </div>
       </section>
 
-      {/* Mini Calculator Section */}
-      <section className="relative py-32 px-8 bg-gradient-to-b from-[#1a1a1a] to-[#242424] overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#27F5A9] to-transparent opacity-30"></div>
 
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="text-center mb-12 mt-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-[#27F5A9]/10 rounded-xl mb-4">
-              <Calculator className="w-8 h-8 text-[#27F5A9]" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">{t.calculator.title}</h2>
-          </div>
-
-          <div className="bg-[#2a2a2a] rounded-2xl p-8 border border-gray-700 shadow-2xl">
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-              {/* Monthly Amount Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {t.calculator.monthly}
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
-                  <input
-                    type="number"
-                    value={calcMonthly}
-                    onChange={(e) => setCalcMonthly(e.target.value)}
-                    className="w-full bg-[#1a1a1a] border border-gray-600 rounded-lg px-4 py-3 pl-8 text-white focus:outline-none focus:border-[#27F5A9] focus:ring-1 focus:ring-[#27F5A9]"
-                    placeholder="1000"
-                    min="10"
-                  />
-                </div>
-              </div>
-
-              {/* Duration Slider */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {t.calculator.duration}
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="range"
-                    value={calcYears}
-                    onChange={(e) => setCalcYears(parseInt(e.target.value))}
-                    min="1"
-                    max="10"
-                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#27F5A9]"
-                  />
-                  <span className="text-2xl font-bold text-[#27F5A9] min-w-[60px] text-right">
-                    {calcYears}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Results */}
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
-                <p className="text-sm text-gray-400 mb-2">{t.calculator.deposit}</p>
-                <p className="text-3xl font-bold text-[#27F5A9]">
-                  ${totalDeposit.toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
-                <p className="text-sm text-gray-400 mb-2">{t.calculator.receive}</p>
-                <p className="text-3xl font-bold text-[#27F5A9]">
-                  ${totalReceive.toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={onEnterApp}
-              className="w-full bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a] px-8 py-4 rounded-lg font-bold text-lg transition-all duration-200 hover:shadow-xl hover:shadow-[#27F5A9]/30 flex items-center justify-center gap-2"
-            >
-              {t.calculator.cta}
-              <ArrowRight className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      </section>
 
       {/* How It Works Section */}
       <section className="relative py-32 px-8 bg-gradient-to-b from-[#242424] to-[#1a1a1a] overflow-hidden">
