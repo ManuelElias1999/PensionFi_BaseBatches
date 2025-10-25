@@ -1,14 +1,12 @@
-import { useState } from 'react'
-import { Calculator, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 interface LandingPageProps {
   onEnterApp: () => void
   language: 'es' | 'en'
+  setLanguage: (lang: 'es' | 'en') => void
 }
 
-export default function LandingPage({ onEnterApp, language }: LandingPageProps) {
-  const [calcMonthly, setCalcMonthly] = useState<string>("1000")
-  const [calcYears, setCalcYears] = useState<number>(1)
+export default function LandingPage({ onEnterApp, language, setLanguage }: LandingPageProps) {
 
   const translations = {
     es: {
@@ -19,14 +17,7 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
         cta: "Comenzar Ahora",
         trust: "Asegurado por Contratos Inteligentes"
       },
-      calculator: {
-        title: "Calcula Tu Pensión",
-        monthly: "Pensión mensual deseada",
-        duration: "Duración (años)",
-        deposit: "Necesitas depositar",
-        receive: "Recibirás en total",
-        cta: "Crear Mi Plan"
-      },
+
       howItWorks: {
         title: "Cómo Funciona",
         subtitle: "Simple y transparente en 3 pasos",
@@ -45,7 +36,8 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
         time: "Todo el proceso toma menos de 5 minutos"
       },
       pillars: {
-        title: "¿Por Qué PensionFi? El Poder de la Descentralización",
+        title: "¿Por Qué PensionFi?",
+        subtitle: "El Poder de la Descentralización",
         security: {
           title: "Seguridad Descentralizada",
           description: "Protección blockchain y activos no expropiables. Tu pensión está bajo tu control total."
@@ -72,20 +64,13 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
     },
     en: {
       hero: {
-        titlePart1: "Secure Your Future:",
+        titlePart1: "Secure Your Future",
         titlePart2: " The Non-Expropriable Pension System",
         subtitle: "A decentralized, transparent, and simple path to retirement security, powered by cutting-edge Web3 technology.",
         cta: "Get Started",
         trust: "Secured by Audited Smart Contracts"
       },
-      calculator: {
-        title: "Calculate Your Pension",
-        monthly: "Desired monthly pension",
-        duration: "Duration (years)",
-        deposit: "You need to deposit",
-        receive: "You'll receive in total",
-        cta: "Create My Plan"
-      },
+
       howItWorks: {
         title: "How It Works",
         subtitle: "Simple and transparent in 3 steps",
@@ -104,7 +89,8 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
         time: "The entire process takes less than 5 minutes"
       },
       pillars: {
-        title: "Why PensionFi? The Power of Decentralization",
+        title: "Why PensionFi?",
+        subtitle: "The Power of Decentralization",
         security: {
           title: "Decentralized Security",
           description: "Blockchain protection and non-expropriable assets. Your pension is under your complete control."
@@ -133,27 +119,6 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
 
   const t = translations[language]
 
-  // Calculate deposit based on contract logic (matching Solidity exactly)
-  const calculateDeposit = (monthly: number, months: number): number => {
-    if (monthly <= 0 || months <= 0) return 0
-
-    // Work in wei (USDC has 6 decimals) to match contract logic
-    const monthlyAmountWei = BigInt(Math.floor(monthly * 1e6))
-    const monthsCountBigInt = BigInt(months)
-    const totalToReceiveWei = monthlyAmountWei * monthsCountBigInt
-    const totalAmountWei = (totalToReceiveWei * 100n) / 110n // Integer division
-    const truncatedWei = (totalAmountWei / 100n) * 100n // Truncate last 2 digits
-
-    // Convert back to USDC (regular number)
-    return Number(truncatedWei) / 1e6
-  }
-
-  const monthlyAmount = parseFloat(calcMonthly) || 0
-  const monthsCount = calcYears * 12 // Convert years to months
-  const totalDeposit = calculateDeposit(monthlyAmount, monthsCount)
-  // Total to receive is deposit * 1.1 (10% fee)
-  const totalReceive = totalDeposit * 1.1
-
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
       {/* Hero Section */}
@@ -181,12 +146,39 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
             <span className="text-3xl font-bold text-white">Pension</span>
             <span className="text-3xl font-bold text-[#27F5A9]">Fi</span>
           </div>
-          <button 
-            onClick={onEnterApp}
-            className="bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a] px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 hover:shadow-lg hover:shadow-[#27F5A9]/20"
-          >
-            {t.conversion.cta}
-          </button>
+          
+          <div className="flex items-center gap-4">
+            {/* Language Toggle */}
+            <div className="relative inline-flex items-center bg-[#27F5A9] rounded-full p-1">
+              <button
+                onClick={() => setLanguage('en')}
+                className={`relative z-10 px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 ${
+                  language === 'en'
+                    ? 'bg-white text-[#1a1a1a] shadow-md'
+                    : 'text-[#1a1a1a] hover:text-white'
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => setLanguage('es')}
+                className={`relative z-10 px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 ${
+                  language === 'es'
+                    ? 'bg-white text-[#1a1a1a] shadow-md'
+                    : 'text-[#1a1a1a] hover:text-white'
+                }`}
+              >
+                Español
+              </button>
+            </div>
+
+            <button 
+              onClick={onEnterApp}
+              className="bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a] px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 hover:shadow-lg hover:shadow-[#27F5A9]/20"
+            >
+              {t.conversion.cta}
+            </button>
+          </div>
         </nav>
 
         {/* Hero Content */}
@@ -212,85 +204,7 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
         </div>
       </section>
 
-      {/* Mini Calculator Section */}
-      <section className="relative py-32 px-8 bg-gradient-to-b from-[#1a1a1a] to-[#242424] overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#27F5A9] to-transparent opacity-30"></div>
 
-        <div className="max-w-4xl mx-auto relative z-10">
-          <div className="text-center mb-12 mt-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-[#27F5A9]/10 rounded-xl mb-4">
-              <Calculator className="w-8 h-8 text-[#27F5A9]" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-3">{t.calculator.title}</h2>
-          </div>
-
-          <div className="bg-[#2a2a2a] rounded-2xl p-8 border border-gray-700 shadow-2xl">
-            <div className="grid md:grid-cols-2 gap-6 mb-8">
-              {/* Monthly Amount Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {t.calculator.monthly}
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
-                  <input
-                    type="number"
-                    value={calcMonthly}
-                    onChange={(e) => setCalcMonthly(e.target.value)}
-                    className="w-full bg-[#1a1a1a] border border-gray-600 rounded-lg px-4 py-3 pl-8 text-white focus:outline-none focus:border-[#27F5A9] focus:ring-1 focus:ring-[#27F5A9]"
-                    placeholder="1000"
-                    min="10"
-                  />
-                </div>
-              </div>
-
-              {/* Duration Slider */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  {t.calculator.duration}
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="range"
-                    value={calcYears}
-                    onChange={(e) => setCalcYears(parseInt(e.target.value))}
-                    min="1"
-                    max="10"
-                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#27F5A9]"
-                  />
-                  <span className="text-2xl font-bold text-[#27F5A9] min-w-[60px] text-right">
-                    {calcYears}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Results */}
-            <div className="grid md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
-                <p className="text-sm text-gray-400 mb-2">{t.calculator.deposit}</p>
-                <p className="text-3xl font-bold text-[#27F5A9]">
-                  ${totalDeposit.toLocaleString()}
-                </p>
-              </div>
-              <div className="bg-[#1a1a1a] rounded-xl p-6 border border-gray-700">
-                <p className="text-sm text-gray-400 mb-2">{t.calculator.receive}</p>
-                <p className="text-3xl font-bold text-[#27F5A9]">
-                  ${totalReceive.toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={onEnterApp}
-              className="w-full bg-[#27F5A9] hover:bg-[#20e094] text-[#1a1a1a] px-8 py-4 rounded-lg font-bold text-lg transition-all duration-200 hover:shadow-xl hover:shadow-[#27F5A9]/30 flex items-center justify-center gap-2"
-            >
-              {t.calculator.cta}
-              <ArrowRight className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      </section>
 
       {/* How It Works Section */}
       <section className="relative py-32 px-8 bg-gradient-to-b from-[#242424] to-[#1a1a1a] overflow-hidden">
@@ -348,11 +262,11 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
 
         <div className="max-w-6xl mx-auto relative z-10 mt-8">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">
-            <span className="text-white">¿Por Qué </span>
+            <span className="text-white">{t.pillars.title.split('PensionFi')[0]}</span>
             <span className="text-[#27F5A9]">PensionFi</span>
-            <span className="text-white">?</span>
+            <span className="text-white">{t.pillars.title.split('PensionFi')[1]}</span>
           </h2>
-          <p className="text-center text-gray-400 mb-16 text-lg">El Poder de la Descentralización</p>
+          <p className="text-center text-gray-400 mb-16 text-lg">{t.pillars.subtitle}</p>
           
           <div className="grid md:grid-cols-3 gap-8">
             {/* Pillar 1: Security */}
@@ -419,9 +333,9 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
           <div className="w-20 h-1 bg-gradient-to-r from-transparent via-[#27F5A9] to-transparent mx-auto mb-8 mt-8"></div>
           
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="text-white">¿Listo para </span>
-            <span className="text-[#27F5A9]">Construir Tu Futuro</span>
-            <span className="text-white">?</span>
+            <span className="text-white">{t.conversion.title.split(/Construir Tu Futuro|Build Your Future/)[0]}</span>
+            <span className="text-[#27F5A9]">{language === 'es' ? 'Construir Tu Futuro' : 'Build Your Future'}</span>
+            <span className="text-white">{t.conversion.title.split(/Construir Tu Futuro|Build Your Future/)[1]}</span>
           </h2>
           <p className="text-lg text-gray-400 mb-10 leading-relaxed max-w-2xl mx-auto">
             {t.conversion.description}
@@ -456,14 +370,9 @@ export default function LandingPage({ onEnterApp, language }: LandingPageProps) 
             </div>
             
             <div className="flex gap-6">
-              <a href="#" className="text-gray-400 hover:text-[#27F5A9] transition-colors">
+              <a href="https://x.com/pensionfi" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#27F5A9] transition-colors">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                </svg>
-              </a>
-              <a href="#" className="text-gray-400 hover:text-[#27F5A9] transition-colors">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
             </div>

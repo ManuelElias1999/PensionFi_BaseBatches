@@ -12,7 +12,7 @@ import { useAccount } from 'wagmi'
 
 function App() {
   const [showLanding, setShowLanding] = useState(true)
-  const [language, setLanguage] = useState<'es' | 'en'>('es')
+  const [language, setLanguage] = useState<'es' | 'en'>('en')
   const [activeSection, setActiveSection] = useState<'home' | 'swap' | 'retire' | 'contribute' | 'myPlans' | 'manifest'>('home')
   const { address: account } = useAccount()
 
@@ -51,7 +51,7 @@ function App() {
   }
 
   if (showLanding) {
-    return <LandingPage onEnterApp={() => setShowLanding(false)} language={language} />
+    return <LandingPage onEnterApp={() => setShowLanding(false)} language={language} setLanguage={setLanguage} />
   }
 
   return (
@@ -67,7 +67,31 @@ function App() {
             <span className="text-3xl font-bold text-[#27F5A9]">Fi</span>
           </button>
           
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
+            {/* Language Toggle */}
+            <div className="relative inline-flex items-center bg-[#27F5A9] rounded-full p-1">
+              <button
+                onClick={() => setLanguage('en')}
+                className={`relative z-10 px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 ${
+                  language === 'en'
+                    ? 'bg-white text-[#1a1a1a] shadow-md'
+                    : 'text-[#1a1a1a] hover:text-white'
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => setLanguage('es')}
+                className={`relative z-10 px-6 py-2 rounded-full font-semibold text-sm transition-all duration-300 ${
+                  language === 'es'
+                    ? 'bg-white text-[#1a1a1a] shadow-md'
+                    : 'text-[#1a1a1a] hover:text-white'
+                }`}
+              >
+                Español
+              </button>
+            </div>
+
             <ConnectWalletButton />
           </div>
         </div>

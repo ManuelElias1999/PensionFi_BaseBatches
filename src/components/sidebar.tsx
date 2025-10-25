@@ -90,7 +90,7 @@ export default function Sidebar({ translations, activeSection, onSectionClick }:
         <div className="flex items-center justify-between">
           <span className="text-gray-500 text-sm">Follow us</span>
           <a
-            href="https://x.com/mejubilo_com"
+            href="https://x.com/pensionfi"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center w-12 h-12 bg-[#27F5A9] text-[#1a1a1a] rounded-xl hover:bg-[#20E096] transition-all duration-200 hover:scale-110 hover:shadow-lg hover:shadow-[#27F5A9]/30"
