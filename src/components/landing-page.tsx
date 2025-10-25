@@ -36,7 +36,8 @@ export default function LandingPage({ onEnterApp, language, setLanguage }: Landi
         time: "Todo el proceso toma menos de 5 minutos"
       },
       pillars: {
-        title: "¿Por Qué PensionFi? El Poder de la Descentralización",
+        title: "¿Por Qué PensionFi?",
+        subtitle: "El Poder de la Descentralización",
         security: {
           title: "Seguridad Descentralizada",
           description: "Protección blockchain y activos no expropiables. Tu pensión está bajo tu control total."
@@ -88,7 +89,8 @@ export default function LandingPage({ onEnterApp, language, setLanguage }: Landi
         time: "The entire process takes less than 5 minutes"
       },
       pillars: {
-        title: "Why PensionFi? The Power of Decentralization",
+        title: "Why PensionFi?",
+        subtitle: "The Power of Decentralization",
         security: {
           title: "Decentralized Security",
           description: "Blockchain protection and non-expropriable assets. Your pension is under your complete control."
@@ -260,11 +262,11 @@ export default function LandingPage({ onEnterApp, language, setLanguage }: Landi
 
         <div className="max-w-6xl mx-auto relative z-10 mt-8">
           <h2 className="text-4xl md:text-5xl font-bold text-center mb-4">
-            <span className="text-white">¿Por Qué </span>
+            <span className="text-white">{t.pillars.title.split('PensionFi')[0]}</span>
             <span className="text-[#27F5A9]">PensionFi</span>
-            <span className="text-white">?</span>
+            <span className="text-white">{t.pillars.title.split('PensionFi')[1]}</span>
           </h2>
-          <p className="text-center text-gray-400 mb-16 text-lg">El Poder de la Descentralización</p>
+          <p className="text-center text-gray-400 mb-16 text-lg">{t.pillars.subtitle}</p>
           
           <div className="grid md:grid-cols-3 gap-8">
             {/* Pillar 1: Security */}
@@ -331,9 +333,9 @@ export default function LandingPage({ onEnterApp, language, setLanguage }: Landi
           <div className="w-20 h-1 bg-gradient-to-r from-transparent via-[#27F5A9] to-transparent mx-auto mb-8 mt-8"></div>
           
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            <span className="text-white">¿Listo para </span>
-            <span className="text-[#27F5A9]">Construir Tu Futuro</span>
-            <span className="text-white">?</span>
+            <span className="text-white">{t.conversion.title.split(/Construir Tu Futuro|Build Your Future/)[0]}</span>
+            <span className="text-[#27F5A9]">{language === 'es' ? 'Construir Tu Futuro' : 'Build Your Future'}</span>
+            <span className="text-white">{t.conversion.title.split(/Construir Tu Futuro|Build Your Future/)[1]}</span>
           </h2>
           <p className="text-lg text-gray-400 mb-10 leading-relaxed max-w-2xl mx-auto">
             {t.conversion.description}
@@ -370,7 +372,7 @@ export default function LandingPage({ onEnterApp, language, setLanguage }: Landi
             <div className="flex gap-6">
               <a href="https://x.com/pensionfi" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-[#27F5A9] transition-colors">
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
             </div>
